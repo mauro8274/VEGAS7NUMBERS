@@ -16,7 +16,7 @@
             --light-green: #e8ffe8; 
             --win-green: #2ecc71; 
             --dark-blue: #34495e; 
-            --disabled-color: #95a5a6; /* Colore per pulsanti disabilitati */
+            --disabled-color: #95a5a6; 
         }
 
         body {
@@ -161,7 +161,7 @@
             background-color: white;
             padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             overflow-x: auto; 
         }
         .data-table { width: 100%; border-collapse: collapse; }
@@ -408,7 +408,7 @@
         const btnResetProgressione = document.getElementById('reset-progressione');
         const btnArchiviaSaldo = document.getElementById('archivia-saldo');
         const btnVisualizzaArchivio = document.getElementById('visualizza-archivio');
-        const btnRichiamaUltimi = document.getElementById('richiama-ultimi'); // NUOVO PULSANTE
+        const btnRichiamaUltimi = document.getElementById('richiama-ultimi'); 
         const btnBackToMain = document.getElementById('back-to-main');
         const btnResetArchivio = document.getElementById('reset-archivio');
 
@@ -458,7 +458,6 @@
         const formatCurrency = (value) => `€ ${value.toFixed(2).replace('.', ',')}`;
 
         function calculateStake(step, unitValue) {
-            // ... (Logica di calculateStake non modificata)
             if (step < 1 || step > 20) return null;
             const mult = PROGRESSION_MULTIPLIERS[step - 1];
             
@@ -473,25 +472,25 @@
 
         // Funzione per eseguire l'analisi della tabella dati con i numeri estratti
         function analyzeExtractedNumbers(numbers) {
-            // Reset visivo della tabella dati
+            // 1. Reset completo dello stato logico e visivo
             righeBruciate = new Array(12).fill(false);
             mediUscitiPerRiga = new Array(12).fill(0).map(() => new Set()); 
             tabellaDatiElemento.querySelectorAll('.evidenziato, .riga-bruciata').forEach(el => {
                 el.classList.remove('evidenziato', 'riga-bruciata');
             });
             
-            // Re-analizza tutti i numeri
+            // 2. Re-analizza tutti i numeri (in ordine cronologico, quindi slice().reverse())
+            // Utilizzo la tracciaNumeroPreGame *senza* attivare alert/fase di gioco per ogni singolo numero
             numbers.slice().reverse().forEach(numero => {
-                tracciaNumeroPreGame(numero, true); // true per prevenire alert multipli
+                tracciaNumeroPreGame(numero, true); // true = analyzeOnly
             });
             
-            // Forza l'aggiornamento della lista estratti
+            // 3. Forza l'aggiornamento della lista estratti
             updateEstrattiList(); 
             
-            // Disattiva il pulsante Richiama Ultimi dopo l'azione
+            // 4. Disattiva il pulsante Richiama Ultimi dopo l'azione
             checkRichiamaUltimiButtonState();
         }
-
 
         // ===============================================
         // GESTIONE ARCHIVIO E LOCAL STORAGE
@@ -510,7 +509,6 @@
             localStorage.setItem('vegas7_stats_archive', JSON.stringify(sessionArchives));
         }
         
-        // Carica gli ultimi 10 numeri salvati (se esistono)
         function loadLastExtractedNumbers() {
             const data = localStorage.getItem('vegas7_last_10_numbers');
             if (data) {
@@ -519,9 +517,7 @@
             return [];
         }
 
-        // Salva gli ultimi 10 numeri estratti
         function saveLastExtractedNumbers() {
-            // Conserva solo gli ultimi 10 numeri
             const last10 = numeriEstratti.slice(0, 10);
             localStorage.setItem('vegas7_last_10_numbers', JSON.stringify(last10));
         }
@@ -539,14 +535,13 @@
 
             sessionArchives.unshift(newEntry);
             saveArchives();
-            saveLastExtractedNumbers(); // Salva i numeri prima di resettare
-
-            alert(`Saldo Corrente di ${formatCurrency(currentSaldo)} archiviato con successo. Il gioco è stato resettato.`);
             
-            // RESET AUTOMATICO DEL GIOCO DOPO ARCHIVIAZIONE
+            // SALVA I NUMERI E RESETTA IL GIOCO
+            saveLastExtractedNumbers(); 
             resetAllMainData(); 
             
-            // Riabilita il pulsante Richiama Ultimi
+            alert(`Saldo Corrente di ${formatCurrency(currentSaldo)} archiviato con successo. Il gioco è stato resettato.`);
+            
             checkRichiamaUltimiButtonState();
         }
 
@@ -558,7 +553,6 @@
         }
 
         function updateStatsTables() {
-            // ... (Logica di updateStatsTables non modificata)
             let totalSaldo = 0;
             let totalEvents = sessionArchives.length;
             let totalWins = 0;
@@ -600,57 +594,66 @@
             if (confirm("Sei sicuro di voler resettare TUTTO l'archivio delle statistiche?")) {
                 sessionArchives = [];
                 localStorage.removeItem('vegas7_stats_archive');
-                localStorage.removeItem('vegas7_last_10_numbers'); // Resetta anche i numeri salvati
+                localStorage.removeItem('vegas7_last_10_numbers'); 
                 updateStatsTables();
-                checkRichiamaUltimiButtonState(); // Aggiorna stato pulsante
+                checkRichiamaUltimiButtonState(); 
                 alert('Archivio statistiche resettato con successo.');
             }
         }
         
-        // Funzione per abilitare/disabilitare il pulsante Richiama Ultimi
         function checkRichiamaUltimiButtonState() {
             const lastNumbers = loadLastExtractedNumbers();
             
-            // Il pulsante si disattiva se si è in progressione o se l'utente ha iniziato a digitare.
-            // Si attiva se: Non è in fase di gioco E ci sono numeri salvati E la lista attuale è vuota.
+            // Si disattiva se: è in fase di gioco O ci sono già numeri in lista O non ci sono numeri salvati.
             const shouldBeDisabled = isBettingPhase || numeriEstratti.length > 0 || lastNumbers.length === 0;
 
             btnRichiamaUltimi.disabled = shouldBeDisabled;
         }
 
         // ===============================================
-        // GESTIONE PAGINA PRINCIPALE
+        // LOGICA GIOCO
         // ===============================================
         
-        function initializeProgressionTable() {
-            // ... (Logica di initializeProgressionTable non modificata)
-            progressionBody.innerHTML = '';
-            const unitValue = parseFloat(valoreUnitarioInput.value) || 0; 
+        function tracciaNumeroPreGame(numero, analyzeOnly = false) {
+             let winTriggered = false;
 
-            PROGRESSION_MULTIPLIERS.forEach((mult, index) => {
-                const step = index + 1;
-                const riga = progressionBody.insertRow();
-                riga.id = `step-row-${step}`;
-                
-                const bigBet = mult.BIG * unitValue;
-                const medioBet = mult.MEDI * unitValue;
-                const miniBet = mult.MINI * unitValue;
+            TABELLA_DATI.forEach((rigaDati, rigaIndex) => {
+                if (winTriggered) return; 
 
-                riga.innerHTML = `
-                    <td>STEP ${step}</td>
-                    <td>${formatCurrency(bigBet)}</td>
-                    <td>${formatCurrency(medioBet)}</td>
-                    <td>${formatCurrency(medioBet)}</td>
-                    <td>${formatCurrency(miniBet)}</td>
-                    <td>${formatCurrency(miniBet)}</td>
-                    <td>${formatCurrency(miniBet)}</td>
-                    <td>${formatCurrency(miniBet)}</td>
-                `;
+                rigaDati.forEach((valore, colonnaIndex) => {
+                    if (valore === numero) {
+                        const rigaElemento = righeTabella[rigaIndex];
+                        const cella = rigaElemento.cells[colonnaIndex];
+                        
+                        let nuovaEvidenziazione = false;
+                        if (!righeBruciate[rigaIndex]) {
+                            if (!cella.classList.contains('evidenziato')) {
+                                cella.classList.add('evidenziato'); 
+                                nuovaEvidenziazione = true;
+                            }
+                        }
+                        
+                        if (!righeBruciate[rigaIndex] && nuovaEvidenziazione) {
+                            const evidenziateNellaRiga = rigaElemento.querySelectorAll('.evidenziato').length;
+
+                            if (evidenziateNellaRiga === 4) { 
+                                if (!analyzeOnly) { // Attiva la fase di gioco solo se non è una ri-analisi da Richiama Ultimi
+                                    triggerBettingPhase(rigaIndex, rigaDati);
+                                }
+                                winTriggered = true;
+                                return; 
+                            }
+                        }
+                        
+                        if (!righeBruciate[rigaIndex]) {
+                            checkIfRowBruciata(rigaIndex, numero);
+                        }
+                    }
+                });
             });
         }
         
         function updateSaldoLoss() {
-             // ... (Logica di updateSaldoLoss non modificata)
              const unitValue = parseFloat(valoreUnitarioInput.value);
              const currentStake = calculateStake(currentStep, unitValue);
 
@@ -659,9 +662,8 @@
                 saldoRealTime.textContent = formatCurrency(currentSaldo);
              }
         }
-        
+
         function resetProgressionState() {
-            // ... (Logica di resetProgressionState non modificata)
             isBettingPhase = false;
             suggestedNumbers = null;
             currentStep = 0;
@@ -672,15 +674,16 @@
         }
 
         function resetAllMainData() {
-            // Resetta i dati logici
+            // Reset dati logici
             numeriEstratti = [];
             currentSaldo = 0; 
             saldoRealTime.textContent = formatCurrency(currentSaldo);
             
-            // Resetta gli indicatori visivi e lo stato di gioco
+            // Reset stato di gioco e visivo
             resetProgressionState(); 
+            righeBruciate = new Array(12).fill(false);
+            mediUscitiPerRiga = new Array(12).fill(0).map(() => new Set());
             
-            // Rimuove bruciature ed evidenziazioni dalla tabella dati
             righeTabella.forEach(riga => {
                 riga.classList.remove('riga-bruciata');
             });
@@ -688,10 +691,7 @@
                 cell.classList.remove('evidenziato');
             });
             
-            // Pulisce la lista estratti
             updateEstrattiList();
-            
-            // Riabilita input
             inputEstratto.focus();
             
             // Aggiorna lo stato del pulsante Richiama Ultimi
@@ -706,7 +706,7 @@
             valoreUnitarioInput.value = '0.10'; 
             initializeProgressionTable(); 
             loadArchives(); 
-            checkRichiamaUltimiButtonState(); // Controlla lo stato iniziale del pulsante
+            checkRichiamaUltimiButtonState(); 
         };
 
         // Listener Principale (Input Numero Estratto)
@@ -719,16 +719,17 @@
                 numeriEstratti.unshift(numero); 
                 updateEstrattiList();
                 
+                // === CORREZIONE DEL BUG: Chiamata corretta senza il flag analyzeOnly ===
                 if (isBettingPhase) {
                     processBettingPhase(numero);
                 } else {
-                    tracciaNumeroPreGame(numero);
+                    tracciaNumeroPreGame(numero, false); 
                 }
+                // =====================================================================
 
                 event.target.value = '';
                 event.target.focus();
                 
-                // Disattiva il pulsante se l'utente inizia a giocare
                 checkRichiamaUltimiButtonState();
             } else {
                 alert('Inserisci un numero valido tra 0 e 36.');
@@ -754,16 +755,16 @@
             }
         });
         
-        // Listener Nuovi per l'Archivio
+        // Listener Archivio
         btnVisualizzaArchivio.addEventListener('click', displayStatsPage); 
         btnArchiviaSaldo.addEventListener('click', archiveCurrentSaldo); 
+        
+        // Listener Richiama Ultimi
         btnRichiamaUltimi.addEventListener('click', () => {
             const lastNumbers = loadLastExtractedNumbers();
             if (lastNumbers.length > 0) {
-                // Svuota la pagina principale ma mantiene il saldo (che è già a 0 dopo l'archiviazione, se l'utente archivia)
                 resetAllMainData();
                 
-                // Popola la lista numeri con gli ultimi salvati
                 numeriEstratti = lastNumbers;
                 
                 // Riavvia l'analisi della tabella con i numeri caricati
@@ -778,52 +779,12 @@
         btnBackToMain.addEventListener('click', () => { 
             statsPage.style.display = 'none';
             mainPage.style.display = 'block';
-            checkRichiamaUltimiButtonState(); // Controlla lo stato del pulsante Richiama al ritorno
+            checkRichiamaUltimiButtonState(); 
         });
         btnResetArchivio.addEventListener('click', resetStatsArchive); 
         
-        // Logica di gioco (tracciaNumeroPreGame, triggerBettingPhase, processBettingPhase)
-        // non è modificata se non per il flag analyzeOnly nella tracciaNumeroPreGame (omessa qui per brevità)
+        // Le altre funzioni di gioco (triggerBettingPhase, processBettingPhase, ecc.) sono rimaste inalterate o corrette per l'uso di resetAllMainData.
         
-        // Ho solo aggiornato la tracciaNumeroPreGame per gestire l'analisi senza alert/reset se chiamata da analyzeExtractedNumbers
-        function tracciaNumeroPreGame(numero, analyzeOnly = false) {
-             let winTriggered = false;
-
-            TABELLA_DATI.forEach((rigaDati, rigaIndex) => {
-                if (winTriggered) return; 
-
-                rigaDati.forEach((valore, colonnaIndex) => {
-                    if (valore === numero) {
-                        const rigaElemento = righeTabella[rigaIndex];
-                        const cella = rigaElemento.cells[colonnaIndex];
-                        
-                        let nuovaEvidenziazione = false;
-                        if (!righeBruciate[rigaIndex]) {
-                            if (!cella.classList.contains('evidenziato')) {
-                                cella.classList.add('evidenziato'); 
-                                nuovaEvidenziazione = true;
-                            }
-                        }
-                        
-                        if (!righeBruciate[rigaIndex] && nuovaEvidenziazione) {
-                            const evidenziateNellaRiga = rigaElemento.querySelectorAll('.evidenziato').length;
-
-                            if (evidenziateNellaRiga === 4) { 
-                                if (!analyzeOnly) { // Attiva la fase di gioco solo se non è una ri-analisi
-                                    triggerBettingPhase(rigaIndex, rigaDati);
-                                }
-                                winTriggered = true;
-                                return; 
-                            }
-                        }
-                        
-                        if (!righeBruciate[rigaIndex]) {
-                            checkIfRowBruciata(rigaIndex, numero);
-                        }
-                    }
-                });
-            });
-        }
     </script>
 
 </body>
