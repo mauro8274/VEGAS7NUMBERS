@@ -21,15 +21,18 @@ const MEDI_PER_RIGA = {
     6: [21, 19], 7: [24, 22], 8: [25, 27], 9: [28, 30], 10: [33, 31], 11: [36, 34]
 };
 
-// Struttura della PROGRESSIONE PUNTATE (Moltiplicatori)
+// Struttura della PROGRESSIONE PUNTATE (Moltiplicatori rispetto al Valore Unitario)
+// NOTA: MINI = 0 per Step 7 in poi (come da immagine allegata)
 const PROGRESSION_MULTIPLIERS = [
+    // 1-6: 7 numeri in gioco (BIG, 2 MEDI, 4 MINI)
     { BIG: 4, MEDI: 2, MINI: 1 }, { BIG: 4, MEDI: 2, MINI: 1 }, { BIG: 4, MEDI: 2, MINI: 1 },
     { BIG: 6, MEDI: 4, MINI: 1 }, { BIG: 6, MEDI: 4, MINI: 2 }, { BIG: 10, MEDI: 8, MINI: 4 },
-    { BIG: 8, MEDI: 4, MINI: 4 }, { BIG: 8, MEDI: 5, MINI: 4 }, { BIG: 10, MEDI: 5, MINI: 4 },
-    { BIG: 10, MEDI: 6, MINI: 4 }, { BIG: 12, MEDI: 8, MINI: 4 }, { BIG: 12, MEDI: 8, MINI: 4 },
-    { BIG: 8, MEDI: 8, MINI: 4 }, { BIG: 9, MEDI: 9, MINI: 4 }, { BIG: 10, MEDI: 10, MINI: 4 },
-    { BIG: 11, MEDI: 11, MINI: 4 }, { BIG: 12, MEDI: 12, MINI: 4 }, { BIG: 12, MEDI: 12, MINI: 4 },
-    { BIG: 13, MEDI: 13, MINI: 4 }, { BIG: 15, MEDI: 15, MINI: 4 } 
+    // 7-20: 3 numeri in gioco (BIG, 2 MEDI)
+    { BIG: 8, MEDI: 4, MINI: 0 }, { BIG: 8, MEDI: 5, MINI: 0 }, { BIG: 10, MEDI: 5, MINI: 0 },
+    { BIG: 10, MEDI: 6, MINI: 0 }, { BIG: 12, MEDI: 8, MINI: 0 }, { BIG: 12, MEDI: 8, MINI: 0 },
+    { BIG: 8, MEDI: 8, MINI: 0 }, { BIG: 9, MEDI: 9, MINI: 0 }, { BIG: 10, MEDI: 10, MINI: 0 },
+    { BIG: 11, MEDI: 11, MINI: 0 }, { BIG: 12, MEDI: 12, MINI: 0 }, { BIG: 12, MEDI: 12, MINI: 0 },
+    { BIG: 13, MEDI: 13, MINI: 0 }, { BIG: 15, MEDI: 15, MINI: 0 } 
 ];
 
 // STATO GLOBALE
@@ -37,7 +40,7 @@ let numeriEstratti = [];
 let righeBruciate = new Array(12).fill(false);
 let mediUscitiPerRiga = new Array(12).fill(0).map(() => new Set()); 
 let isBettingPhase = false; 
-let suggestedNumbers = null; // [BIG, MEDIO1, MEDIO2, MINI1, MINI2, MINI3, MINI4]
+let suggestedNumbers = null; 
 let currentStep = 0; 
 let currentSaldo = 0; 
 
@@ -47,7 +50,6 @@ const formatCurrency = (value) => `€ ${value.toFixed(2).replace('.', ',')}`;
 // Funzione per inizializzare la tabella progressione con gli importi dinamici
 function initializeProgressionTable() {
     progressionBody.innerHTML = '';
-    // Usa 0.10 come base se l'utente non ha inserito nulla, altrimenti usa il valore inserito.
     const unitValue = parseFloat(valoreUnitarioInput.value) || 0; 
 
     PROGRESSION_MULTIPLIERS.forEach((mult, index) => {
@@ -81,6 +83,7 @@ function calculateStake(step, unitValue) {
     const medioBet = mult.MEDI * unitValue;
     const miniBet = mult.MINI * unitValue;
     
+    // Stake totale: 1 BIG + 2 MEDI + 4 MINI (miniBet può essere 0)
     const totalStake = bigBet + (2 * medioBet) + (4 * miniBet);
 
     return { bigBet, medioBet, miniBet, totalStake };
@@ -91,6 +94,9 @@ function updateProgressionHeader(numbers) {
     document.getElementById('big-number').textContent = numbers[0] || '?';
     document.getElementById('medio1-number').textContent = numbers[1] || '?';
     document.getElementById('medio2-number').textContent = numbers[2] || '?';
+    
+    // Nello Step 7 e successivi, i MINI sono in gioco ma la puntata è 0, 
+    // quindi visualizziamo i numeri ma la loro puntata sarà 0 nella tabella.
     document.getElementById('mini1-number').textContent = numbers[3] || '?';
     document.getElementById('mini2-number').textContent = numbers[4] || '?';
     document.getElementById('mini3-number').textContent = numbers[5] || '?';
@@ -113,8 +119,8 @@ function highlightStep(newStep) {
     currentStep = newStep;
 }
 
-// Funzione per aggiornare la lista dei numeri estratti (in colonna)
 function updateEstrattiList() {
+    // ... (Logica non modificata)
     listaEstratti.innerHTML = ''; 
     const maxDisplay = 30; 
     numeriEstratti.slice(0, maxDisplay).forEach(numero => {
@@ -125,6 +131,7 @@ function updateEstrattiList() {
 }
 
 function updateSuggestedNumbers(numbers) {
+    // ... (Logica non modificata)
     if (numbers && numbers.length > 0) {
         suggestedNumbersElement.innerHTML = `<strong>${numbers.join(', ')}</strong>`;
     } else {
@@ -134,19 +141,18 @@ function updateSuggestedNumbers(numbers) {
 
 // Logica di Bruciatura (Regole 1 & 2)
 function checkIfRowBruciata(rigaIndex, numeroEstratto) {
+    // ... (Logica non modificata)
     if (righeBruciate[rigaIndex]) return; 
 
     const rigaElemento = righeTabella[rigaIndex];
     const datiRiga = TABELLA_DATI[rigaIndex];
 
-    // 1. Regola 1: Estrazione di un numero BIG (Prima Colonna)
     if (datiRiga[0] === numeroEstratto) {
         righeBruciate[rigaIndex] = true;
         rigaElemento.classList.add('riga-bruciata');
         return;
     }
 
-    // 2. Regola 2: Estrazione di ENTRAMBI i numeri MEDI
     const numeriMedi = MEDI_PER_RIGA[rigaIndex];
     if (numeriMedi.includes(numeroEstratto)) {
         mediUscitiPerRiga[rigaIndex].add(numeroEstratto);
@@ -160,10 +166,11 @@ function checkIfRowBruciata(rigaIndex, numeroEstratto) {
 
 // Traccia, Brucia, Controlla Vittoria (Logica pre-gioco)
 function tracciaNumeroPreGame(numero) {
+    // ... (Logica non modificata)
     let winTriggered = false;
 
     TABELLA_DATI.forEach((rigaDati, rigaIndex) => {
-        if (winTriggered) return; // Se la fase di gioco è già stata attivata
+        if (winTriggered) return; 
 
         rigaDati.forEach((valore, colonnaIndex) => {
             if (valore === numero) {
@@ -178,7 +185,6 @@ function tracciaNumeroPreGame(numero) {
                     }
                 }
                 
-                // Check WIN Condition (4 celle evidenziate)
                 if (!righeBruciate[rigaIndex] && nuovaEvidenziazione) {
                     const evidenziateNellaRiga = rigaElemento.querySelectorAll('.evidenziato').length;
 
@@ -189,7 +195,6 @@ function tracciaNumeroPreGame(numero) {
                     }
                 }
                 
-                // Check BRUCIATURA
                 if (!righeBruciate[rigaIndex]) {
                     checkIfRowBruciata(rigaIndex, numero);
                 }
@@ -214,9 +219,8 @@ function triggerBettingPhase(rigaIndex, rigaDati) {
     updateProgressionHeader(rigaDati);
     updateSuggestedNumbers(rigaDati);
     
-    // Inizializza al primo step e registra la perdita iniziale (Stake Step 1)
     highlightStep(1);
-    updateSaldoLoss(); 
+    updateSaldoLoss(); // Registra la perdita iniziale (Stake Step 1)
     
     const numeri = rigaDati.join(', ');
     alert(`CI SIAMO! I 7 numeri da giocare sono: ${numeri}`);
@@ -242,23 +246,66 @@ function processBettingPhase(numeroEstratto) {
             betOnWinNumber = currentStake.bigBet;
         } else if (winIndex === 1 || winIndex === 2) { // MEDI
             betOnWinNumber = currentStake.medioBet;
-        } else { // MINI
+        } else if (currentStep <= 6) { // MINI (solo se in gioco, cioè Step 1-6)
             betOnWinNumber = currentStake.miniBet;
-        }
-
+        } 
+        
+        // Se la puntata è 0 (es. MINI dopo Step 6), betOnWinNumber sarà 0.
+        // Se si vince su un numero con puntata 0, la vincita sarà 0.
+        
         // Calcolo Vincita Netta: (Bet * 36) - Total Stake
+        // Esempio utente: Step 1, Stake 1.20€. Win MEDIO (Bet 0.20€).
+        // Guadagno Lordo: 0.20 * 36 = 7.20€
+        // Vincita Netta: 7.20€ - 1.20€ = 6.00€ <-- CORRETTO
         const netProfit = (betOnWinNumber * 36) - currentStake.totalStake;
         
-        currentSaldo += netProfit;
+        // Aggiorna Saldo
+        // currentSaldo è negativo (-1.20€). Aggiungiamo il profitto (6.00€).
+        // -1.20€ + 6.00€ = 4.80€ <-- ATTENZIONE! IL CALCOLO PRECEDENTE ERA SBAGLIATO.
+        // Il saldo deve essere (Saldo Attuale - Stake) + Guadagno Lordo.
+        // O: Saldo Attuale + Net Profit.
+
+        // Ricalcolo: Il saldo iniziale era 0. Dopo aver giocato lo Step 1, è -1.20€.
+        // Se vinco al primo step, il *net profit* è 6.00€.
+        // Saldo prima della vittoria: -1.20€
+        // Saldo dopo: -1.20€ + 6.00€ = 4.80€.
+        
+        // Se il tuo esempio richiede che il Saldo Real Time sia 6€ dopo la prima vincita,
+        // significa che il Saldo Real Time traccia il PROFITTO FINALE della serie, NON IL CUMULATIVO.
+        // Assumo che il Saldo Real Time debba tracciare il PROFITTO/PERDITA DELLA SERIE.
+        // Il saldo va aggiornato al valore della vincita netta (il profitto generato).
+
+        // LOGICA CORRETTA PER PROFITTO DI SERIE:
+        currentSaldo += netProfit; // Aggiungo il profitto netto (6.00€) al saldo cumulativo (che era -1.20€). Risultato 4.80€.
+
+        // Se l'utente vuole che il saldo sia 6€, significa che sta confondendo il guadagno lordo (7.20€) con
+        // il profitto netto (6.00€) e il saldo cumulativo.
+        
+        // MAI TOGLIERE LO STAKE DALLA VINCITA SE IL SALDO È GIÀ STATO DECREMENTATO.
+        // - Saldo prima dell'estrazione: -1.20€
+        // - Vincita Lorda: 7.20€
+        // - Saldo dopo: -1.20€ + 7.20€ = 6.00€ <-- Questa è la logica che porta a 6€!
+
+        // **CORREZIONE**: Se il Saldo Real Time deve arrivare a 6€ dopo la vittoria di 7.20€ lordi,
+        // la formula corretta è: Saldo = Saldo Precedente + (BetOnWinNumber * 36).
+        
+        // In questo caso, il `currentStake.totalStake` è già stato sottratto in `updateSaldoLoss()`.
+        currentSaldo = currentSaldo + (betOnWinNumber * 36);
+        
+        // Formattazione per il pop-up:
+        const winAmountPopup = betOnWinNumber * 36;
+        
         saldoRealTime.textContent = formatCurrency(currentSaldo);
 
-        alert(`HAI VINTO ${formatCurrency(netProfit)}! Procedi ad archiviare la giocata. La progressione è stata resettata.`);
+        // Stoppa tutto
+        alert(`HAI VINTO ${formatCurrency(winAmountPopup)}! Procedi ad archiviare la giocata. La progressione è stata resettata.`);
         
         resetProgressionState();
 
     } else {
         // *** SCENARIO DI PERDITA (Avanzamento Step) ***
         
+        // Stoppa tutto se non si vince e non calcolare lo step successivo
         if (currentStep < 20) {
             currentStep++;
             highlightStep(currentStep);
@@ -276,7 +323,6 @@ function updateSaldoLoss() {
      const currentStake = calculateStake(currentStep, unitValue);
 
      if (currentStake) {
-        // La perdita è l'ammontare totale giocato nello step
         currentSaldo -= currentStake.totalStake;
         saldoRealTime.textContent = formatCurrency(currentSaldo);
      }
@@ -296,8 +342,12 @@ function resetProgressionState() {
 
 // *** LISTENER PRINCIPALI ***
 
-// Inizializza la progressione alla carica della pagina e all'input del valore unitario
-window.onload = initializeProgressionTable;
+window.onload = () => {
+    // 1. Imposta 0.10 di default
+    valoreUnitarioInput.value = '0.10'; 
+    // 2. Inizializza la tabella con il valore di default
+    initializeProgressionTable(); 
+};
 valoreUnitarioInput.addEventListener('input', initializeProgressionTable);
 
 
@@ -359,10 +409,6 @@ btnResetProgressione.addEventListener('click', () => {
      }
 });
 
-// Placeholder per il bottone Visualizza archivio
 document.getElementById('visualizza-archivio').addEventListener('click', () => {
     alert('Funzionalità "Visualizza archivio" non implementata. Richiederebbe una nuova logica di storage.');
 });
-
-// Esegue l'inizializzazione iniziale
-initializeProgressionTable();
