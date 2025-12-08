@@ -268,9 +268,7 @@
                     <input type="number" id="numero-estratto" min="0" max="36" inputmode="numeric" pattern="[0-9]*" placeholder="Inserisci numero" autofocus>
                     
                     <label for="valore-unitario">Valore Unitario (€):</label>
-                    <input type="number" id="valore-unitario" min="0.01" step="0.01" placeholder="0.10">
-                    
-                    <label>Saldo Real Time:</label>
+                    <input type="text" id="valore-unitario" placeholder="0,10"> <label>Saldo Real Time:</label>
                     <div id="saldo-real-time" class="calculated-field">€ 0.00</div>
                 </div>
 
@@ -456,6 +454,13 @@
         // FUNZIONI UTILITY E DI GIOCO
         // ===============================================
         const formatCurrency = (value) => `€ ${value.toFixed(2).replace('.', ',')}`;
+        
+        // Funzione helper per ottenere il valore unitario come numero (convertendo la virgola)
+        function getUnitValue() {
+             // Sostituisce la virgola con il punto e poi converte in float.
+             const value = valoreUnitarioInput.value.replace(',', '.');
+             return parseFloat(value) || 0;
+        }
 
         function calculateStake(step, unitValue) {
             if (step < 1 || step > 20) return null;
@@ -473,11 +478,12 @@
         // Funzione per rigenerare la tabella di progressione
         function initializeProgressionTable() {
             progressionBody.innerHTML = '';
-            // Recupera il valore unitario, usando 0.10 se non è valido
-            const unitValue = parseFloat(valoreUnitarioInput.value) || 0.10; 
             
-            // Aggiorna il valore nell'input se era vuoto o zero, per coerenza visiva
-            if (parseFloat(valoreUnitarioInput.value) !== unitValue) {
+            // Usiamo la funzione getUnitValue()
+            const unitValue = getUnitValue() || 0.10; 
+            
+            // Aggiorna il valore nell'input se era vuoto o zero
+            if (!valoreUnitarioInput.value || getUnitValue() <= 0) {
                  valoreUnitarioInput.value = unitValue.toFixed(2).replace('.', ',');
             }
             
@@ -508,13 +514,11 @@
         }
         
         function highlightStep(newStep) {
-            // Rimuove la classe dallo step precedente
             if (currentStep >= 1 && currentStep <= 20) {
                 const prevRow = document.getElementById(`step-row-${currentStep}`);
                 if (prevRow) prevRow.classList.remove('active-step');
             }
             
-            // Aggiunge la classe al nuovo step
             if (newStep >= 1 && newStep <= 20) {
                 const newRow = document.getElementById(`step-row-${newStep}`);
                 if (newRow) newRow.classList.add('active-step');
@@ -571,9 +575,21 @@
             }
         }
         
+        function updateSaldoLoss() {
+             // Usa getUnitValue() per il calcolo
+             const unitValue = getUnitValue(); 
+             const currentStake = calculateStake(currentStep, unitValue);
+
+             if (currentStake) {
+                currentSaldo -= currentStake.totalStake;
+                saldoRealTime.textContent = formatCurrency(currentSaldo);
+             }
+        }
+        
         function triggerBettingPhase(rigaIndex, rigaDati) {
-            const unitValue = parseFloat(valoreUnitarioInput.value);
-            if (isNaN(unitValue) || unitValue <= 0) {
+            // Usa getUnitValue() per la verifica
+            const unitValue = getUnitValue();
+            if (unitValue <= 0) {
                  alert('ATTENZIONE: Inserisci prima un "Valore Unitario €" valido per iniziare la progressione.');
                  isBettingPhase = false;
                  suggestedNumbers = null;
@@ -587,16 +603,17 @@
             updateSuggestedNumbers(rigaDati);
             
             highlightStep(1);
-            updateSaldoLoss(); 
+            updateSaldoLoss(); // PRIMA perdita (Step 1)
             
             const numeri = rigaDati.join(', ');
             alert(`CI SIAMO! I 7 numeri da giocare sono: ${numeri}`);
             
-            checkRichiamaUltimiButtonState(); // Disattiva il pulsante Richiama Ultimi
+            checkRichiamaUltimiButtonState(); 
         }
 
         function processBettingPhase(numeroEstratto) {
-            const unitValue = parseFloat(valoreUnitarioInput.value);
+            // Usa getUnitValue() per il calcolo
+            const unitValue = getUnitValue();
             const isWin = suggestedNumbers.includes(numeroEstratto);
             const currentStake = calculateStake(currentStep, unitValue);
             
@@ -606,12 +623,17 @@
                 let betOnWinNumber = 0;
                 const winIndex = suggestedNumbers.indexOf(numeroEstratto);
                 
+                // Determina la puntata specifica sul numero vincente
                 if (winIndex === 0) { 
                     betOnWinNumber = currentStake.bigBet;
                 } else if (winIndex === 1 || winIndex === 2) { 
                     betOnWinNumber = currentStake.medioBet;
                 } else if (currentStep <= 6) { 
+                    // I MINI numeri sono giocati solo fino allo step 6
                     betOnWinNumber = currentStake.miniBet;
+                } else {
+                    // Se vinci su un MINI dopo lo Step 6, la puntata era 0, quindi solo recuperi la perdita dello step
+                    // Ma il saldo è già stato aggiornato con la perdita, quindi non facciamo nulla.
                 } 
                 
                 const winLord = betOnWinNumber * 36;
@@ -633,6 +655,7 @@
                     resetProgressionState();
                 }
             }
+            checkRichiamaUltimiButtonState();
         }
         
         function tracciaNumeroPreGame(numero, analyzeOnly = false) {
@@ -685,17 +708,15 @@
         }
 
         function resetAllMainData() {
-            // Reset dati logici
             numeriEstratti = [];
             currentSaldo = 0; 
             saldoRealTime.textContent = formatCurrency(currentSaldo);
             
             // Assicurati che il valore unitario non sia vuoto (o 0) dopo un reset
-            if (!valoreUnitarioInput.value || parseFloat(valoreUnitarioInput.value) <= 0) {
-                 valoreUnitarioInput.value = '0.10'; 
+            if (!valoreUnitarioInput.value || getUnitValue() <= 0) {
+                 valoreUnitarioInput.value = '0,10'; 
             }
             
-            // Reset stato di gioco e visivo
             resetProgressionState(); 
             righeBruciate = new Array(12).fill(false);
             mediUscitiPerRiga = new Array(12).fill(0).map(() => new Set());
@@ -708,17 +729,12 @@
             });
             
             updateEstrattiList();
-            
-            // === CHIAMATA AGGIUNTA PER FISSARE IL BUG DELLA TABELLA PROGRESSIONE ===
             initializeProgressionTable(); 
-            // =====================================================================
-            
             inputEstratto.focus();
             
             checkRichiamaUltimiButtonState();
         }
 
-        // Funzione per eseguire l'analisi della tabella dati con i numeri estratti
         function analyzeExtractedNumbers(numbers) {
             righeBruciate = new Array(12).fill(false);
             mediUscitiPerRiga = new Array(12).fill(0).map(() => new Set()); 
@@ -726,7 +742,6 @@
                 el.classList.remove('evidenziato', 'riga-bruciata');
             });
             
-            // Re-analizza tutti i numeri (true = analyzeOnly)
             numbers.slice().reverse().forEach(numero => {
                 tracciaNumeroPreGame(numero, true); 
             });
@@ -777,15 +792,62 @@
             const shouldBeDisabled = isBettingPhase || numeriEstratti.length > 0 || lastNumbers.length === 0;
             btnRichiamaUltimi.disabled = shouldBeDisabled;
         }
+        
+        function updateStatsTables() {
+            let totalSaldo = 0;
+            let totalEvents = sessionArchives.length;
+            let totalWins = 0;
+            let totalLosses = 0;
+            
+            const sessionsBody = document.getElementById('sessions-body');
+            sessionsBody.innerHTML = '';
 
-        // ... (updateStatsTables e resetStatsArchive non modificati)
+            sessionArchives.forEach(entry => {
+                totalSaldo += entry.saldo;
+                if (entry.saldo > 0) { totalWins++; } else if (entry.saldo < 0) { totalLosses++; }
+
+                const riga = sessionsBody.insertRow();
+                const saldoClass = entry.saldo >= 0 ? 'positive-saldo' : 'negative-saldo';
+                
+                riga.innerHTML = `<td>${entry.timestamp}</td><td class="${saldoClass}">${formatCurrency(entry.saldo)}</td>`;
+            });
+            
+            document.getElementById('total-saldo').textContent = formatCurrency(totalSaldo);
+            document.getElementById('total-events').textContent = totalEvents;
+            document.getElementById('total-wins').textContent = totalWins;
+            document.getElementById('total-losses').textContent = totalLosses;
+            
+            const totalSaldoCell = document.getElementById('total-saldo');
+            totalSaldoCell.classList.remove('positive-saldo', 'negative-saldo');
+            if (totalSaldo > 0) totalSaldoCell.classList.add('positive-saldo');
+            if (totalSaldo < 0) totalSaldoCell.classList.add('negative-saldo');
+        }
+        
+        function resetStatsArchive() {
+            if (confirm("Sei sicuro di voler resettare TUTTO l'archivio delle statistiche?")) {
+                sessionArchives = [];
+                localStorage.removeItem('vegas7_stats_archive');
+                localStorage.removeItem('vegas7_last_10_numbers'); 
+                updateStatsTables();
+                checkRichiamaUltimiButtonState(); 
+                alert('Archivio statistiche resettato con successo.');
+            }
+        }
+        
+        function displayStatsPage() {
+            loadArchives(); 
+            updateStatsTables();
+            mainPage.style.display = 'none';
+            statsPage.style.display = 'block';
+        }
+
 
         // ===============================================
         // INIZIALIZZAZIONE & LISTENER
         // ===============================================
 
         window.onload = () => {
-            // Sostituisco il '.' con la ',' per impostazione locale italiana e imposto il default.
+            // Impostiamo il campo a 'text' per accettare la virgola, e lo inizializziamo a 0,10.
             valoreUnitarioInput.value = '0,10'; 
             initializeProgressionTable(); 
             loadArchives(); 
@@ -820,9 +882,9 @@
         });
         
         // Listener per l'aggiornamento della tabella di progressione quando cambia il Valore Unitario
+        // Rende il campo di input editabile (essendo text) e permette la virgola.
         valoreUnitarioInput.addEventListener('input', () => {
-             // Sostituisce la virgola con il punto per il parseFloat
-             valoreUnitarioInput.value = valoreUnitarioInput.value.replace(',', '.');
+             // Forza l'aggiornamento della tabella ogni volta che l'input cambia
              initializeProgressionTable();
         });
         
@@ -866,48 +928,6 @@
         });
         
         btnResetArchivio.addEventListener('click', resetStatsArchive); 
-        
-        // Funzione omessa per brevità ma necessaria:
-        function updateStatsTables() {
-            let totalSaldo = 0;
-            let totalEvents = sessionArchives.length;
-            let totalWins = 0;
-            let totalLosses = 0;
-            
-            const sessionsBody = document.getElementById('sessions-body');
-            sessionsBody.innerHTML = '';
-
-            sessionArchives.forEach(entry => {
-                totalSaldo += entry.saldo;
-                if (entry.saldo > 0) { totalWins++; } else if (entry.saldo < 0) { totalLosses++; }
-
-                const riga = sessionsBody.insertRow();
-                const saldoClass = entry.saldo >= 0 ? 'positive-saldo' : 'negative-saldo';
-                
-                riga.innerHTML = `<td>${entry.timestamp}</td><td class="${saldoClass}">${formatCurrency(entry.saldo)}</td>`;
-            });
-            
-            document.getElementById('total-saldo').textContent = formatCurrency(totalSaldo);
-            document.getElementById('total-events').textContent = totalEvents;
-            document.getElementById('total-wins').textContent = totalWins;
-            document.getElementById('total-losses').textContent = totalLosses;
-            
-            const totalSaldoCell = document.getElementById('total-saldo');
-            totalSaldoCell.classList.remove('positive-saldo', 'negative-saldo');
-            if (totalSaldo > 0) totalSaldoCell.classList.add('positive-saldo');
-            if (totalSaldo < 0) totalSaldoCell.classList.add('negative-saldo');
-        }
-        
-        function resetStatsArchive() {
-            if (confirm("Sei sicuro di voler resettare TUTTO l'archivio delle statistiche?")) {
-                sessionArchives = [];
-                localStorage.removeItem('vegas7_stats_archive');
-                localStorage.removeItem('vegas7_last_10_numbers'); 
-                updateStatsTables();
-                checkRichiamaUltimiButtonState(); 
-                alert('Archivio statistiche resettato con successo.');
-            }
-        }
     </script>
 
 </body>
