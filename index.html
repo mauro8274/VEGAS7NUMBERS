@@ -1,1 +1,686 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VEGAS 7 NUMBERS</title>
+    <style>
+        /* CSS per la Reattività e lo Stile */
+        :root {
+            --green-bg: #4CAF50; /* Sfondo verde richiesto */
+            --light-gray-bg: #f0f0f0; /* Sfondo grigio chiaro richiesto */
+            --red-btn: #f44336;
+            --blue-btn: #2196F3;
+            --text-color: #333;
+            --border-color: #ccc;
+            --light-green: #e8ffe8; /* Verde tenue per lo step attivo */
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--green-bg); /* Sfondo verde */
+            color: var(--text-color);
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            padding: 20px 0;
+            margin: 0;
+            font-size: 2em;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        /* Area Input Principale */
+        .input-area {
+            background-color: var(--light-gray-bg); 
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        /* Campi di Input */
+        .input-group {
+            display: flex;
+            flex-wrap: wrap; 
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .input-group label {
+            font-weight: bold;
+            flex-basis: 100%; 
+        }
+        .input-group input[type="number"],
+        .input-group .calculated-field {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+            flex-grow: 1; 
+            min-width: 120px; 
+        }
+        .input-group .calculated-field {
+            background-color: white; 
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            min-height: 40px; 
+        }
+
+        /* Bottoni */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: space-around;
+        }
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            flex-grow: 1;
+            max-width: 200px; 
+            transition: background-color 0.3s;
+        }
+        .btn-red { background-color: var(--red-btn); }
+        .btn-blue { background-color: var(--blue-btn); }
+        .btn:hover { opacity: 0.9; }
+
+        /* Sezione Dati e Progressioni */
+        .data-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-around;
+        }
+
+        /* Tabella Numeri Estratti e Area Suggerimenti */
+        .extracted-numbers-container, .suggested-numbers-area {
+            flex: 1 1 200px; 
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .suggested-numbers-area { text-align: center; }
+        #numeri-suggeriti {
+            font-size: 1.8em;
+            color: var(--green-bg);
+            margin: 10px 0 0;
+            word-wrap: break-word; /* Gestisce numeri lunghi su mobile */
+        }
+        .extracted-numbers-table { width: 100%; border-collapse: collapse; }
+        .extracted-numbers-table th, .extracted-numbers-table td { border: 1px solid var(--border-color); padding: 8px; text-align: center; }
+
+        /* TABELLA DATI PRINCIPALE */
+        .data-table-container {
+            flex: 3 1 400px; 
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow-x: auto; 
+        }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th, .data-table td { border: 1px solid #000; padding: 8px 5px; text-align: center; font-size: 0.9em; }
+        .data-table th { background-color: #e0e0e0; }
+
+        /* CLASSI LOGICHE TABELLA DATI */
+        .evidenziato { background-color: #ffffa8 !important; color: #333; font-weight: bold; }
+        .riga-bruciata { background-color: #ff4d4d !important; color: white; font-weight: bold; }
+        .riga-bruciata td { background-color: transparent !important; color: white; }
+
+        /* NUOVA TABELLA PROGRESSIONE */
+        .progression-section {
+            background-color: white;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+        .progression-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+        .progression-table th, .progression-table td {
+            border: 1px solid #000;
+            padding: 6px 4px;
+            text-align: center;
+        }
+        .progression-table thead th {
+            background-color: #333;
+            color: white;
+            font-size: 0.9em;
+        }
+        /* Colori header come nell'immagine */
+        .header-big { background-color: #555 !important; }
+        .header-medio { background-color: #e67e22 !important; }
+        .header-mini { background-color: #27ae60 !important; }
+
+        /* Classe per lo step attivo (Verde Tenue) */
+        .active-step {
+            background-color: var(--light-green) !important;
+            font-weight: bold;
+        }
+        /* Stile per il bottone RESET PROGRESSIONE */
+        .reset-progression-btn {
+            background-color: #34495e;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            display: block;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Media Query per schermi grandi */
+        @media (min-width: 600px) {
+            .input-group label { flex-basis: auto; margin-right: 10px; }
+            .input-group { justify-content: space-between; }
+            .input-group input[type="number"], .input-group .calculated-field { flex-grow: 0; width: calc(33% - 15px); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>VEGAS 7 NUMBERS</h1>
+
+    <div class="container">
+        
+        <div class="input-area">
+            
+            <div class="input-group">
+                <label for="numero-estratto">Numero Estratto (0-36):</label>
+                <input type="number" id="numero-estratto" min="0" max="36" inputmode="numeric" pattern="[0-9]*" placeholder="Inserisci numero" autofocus>
+                
+                <label for="valore-unitario">Valore Unitario (€):</label>
+                <input type="number" id="valore-unitario" min="0.01" step="0.01" placeholder="0.00">
+                
+                <label>Saldo Real Time:</label>
+                <div id="saldo-real-time" class="calculated-field">€ 0.00</div>
+            </div>
+
+            <div class="button-group">
+                <button id="reset-numeri" class="btn btn-red">Reset numeri</button>
+                <button id="visualizza-archivio" class="btn btn-blue">Visualizza archivio</button>
+            </div>
+        </div>
+        
+        <hr>
+
+        <div class="suggested-numbers-area">
+            <h3>I 7 Numeri Suggeriti:</h3>
+            <p id="numeri-suggeriti">Attendendo la Logica...</p>
+        </div>
+
+        <hr>
+
+        <div class="progression-section">
+            <h3>PROGRESSIONE PUNTATE</h3>
+            <table class="progression-table">
+                <thead>
+                    <tr id="progression-header">
+                        <th>STEP</th>
+                        <th class="header-big">BIG: <span id="big-number">?</span></th>
+                        <th class="header-medio">MEDIO: <span id="medio1-number">?</span></th>
+                        <th class="header-medio">MEDIO: <span id="medio2-number">?</span></th>
+                        <th class="header-mini">MINI: <span id="mini1-number">?</span></th>
+                        <th class="header-mini">MINI: <span id="mini2-number">?</span></th>
+                        <th class="header-mini">MINI: <span id="mini3-number">?</span></th>
+                        <th class="header-mini">MINI: <span id="mini4-number">?</span></th>
+                    </tr>
+                </thead>
+                <tbody id="progression-body">
+                    </tbody>
+            </table>
+            <button id="reset-progressione" class="reset-progression-btn">RESET PROGRESSIONE</button>
+        </div>
+
+        <hr>
+
+        <div class="data-section">
+            
+            <div class="extracted-numbers-container">
+                <h3>Numeri Estratti</h3>
+                <table class="extracted-numbers-table">
+                    <thead><tr><th>Numero</th></tr></thead>
+                    <tbody id="lista-estratti"></tbody>
+                </table>
+            </div>
+
+            <div class="data-table-container">
+                <h3>TABELLA DATI</h3>
+                <table class="data-table" id="tabella-dati">
+                    <tbody>
+                        <tr><td>2</td><td>1</td><td>3</td><td>36</td><td>4</td><td>34</td><td>6</td></tr>
+                        <tr><td>5</td><td>4</td><td>6</td><td>1</td><td>9</td><td>3</td><td>7</td></tr>
+                        <tr><td>8</td><td>9</td><td>7</td><td>4</td><td>12</td><td>6</td><td>10</td></tr>
+                        <tr><td>11</td><td>12</td><td>10</td><td>9</td><td>13</td><td>7</td><td>15</td></tr>
+                        <tr><td>14</td><td>13</td><td>15</td><td>12</td><td>16</td><td>10</td><td>18</td></tr>
+                        <tr><td>17</td><td>16</td><td>18</td><td>13</td><td>21</td><td>15</td><td>19</td></tr>
+                        <tr><td>20</td><td>21</td><td>19</td><td>16</td><td>24</td><td>18</td><td>22</td></tr>
+                        <tr><td>23</td><td>24</td><td>22</td><td>21</td><td>25</td><td>19</td><td>27</td></tr>
+                        <tr><td>26</td><td>25</td><td>27</td><td>24</td><td>28</td><td>22</td><td>30</td></tr>
+                        <tr><td>29</td><td>28</td><td>30</td><td>25</td><td>33</td><td>27</td><td>31</td></tr>
+                        <tr><td>32</td><td>33</td><td>31</td><td>28</td><td>36</td><td>30</td><td>34</td></tr>
+                        <tr><td>35</td><td>36</td><td>34</td><td>33</td><td>1</td><td>31</td><td>3</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+        
+    </div>
+
+    <script>
+        const inputEstratto = document.getElementById('numero-estratto');
+        const valoreUnitarioInput = document.getElementById('valore-unitario');
+        const listaEstratti = document.getElementById('lista-estratti');
+        const saldoRealTime = document.getElementById('saldo-real-time');
+        const btnResetNumeri = document.getElementById('reset-numeri');
+        const btnResetProgressione = document.getElementById('reset-progressione');
+        const tabellaDatiElemento = document.getElementById('tabella-dati');
+        const suggestedNumbersElement = document.getElementById('numeri-suggeriti');
+        const progressionBody = document.getElementById('progression-body');
+        const righeTabella = tabellaDatiElemento.querySelectorAll('tbody tr');
+        
+        // Struttura della TABELLA DATI e dei numeri MEDI (come dai passi precedenti)
+        const TABELLA_DATI = [
+            [2, 1, 3, 36, 4, 34, 6], [5, 4, 6, 1, 9, 3, 7], [8, 9, 7, 4, 12, 6, 10],
+            [11, 12, 10, 9, 13, 7, 15], [14, 13, 15, 12, 16, 10, 18], [17, 16, 18, 13, 21, 15, 19],
+            [20, 21, 19, 16, 24, 18, 22], [23, 24, 22, 21, 25, 19, 27], [26, 25, 27, 24, 28, 22, 30],
+            [29, 28, 30, 25, 33, 27, 31], [32, 33, 31, 28, 36, 30, 34], [35, 36, 34, 33, 1, 31, 3]
+        ];
+        const MEDI_PER_RIGA = {
+            0: [1, 3], 1: [4, 6], 2: [9, 7], 3: [12, 10], 4: [13, 15], 5: [16, 18], 
+            6: [21, 19], 7: [24, 22], 8: [25, 27], 9: [28, 30], 10: [33, 31], 11: [36, 34]
+        };
+
+        // Struttura della PROGRESSIONE PUNTATE (Moltiplicatori rispetto al "valore unitario €")
+        // Assumiamo che il "valore unitario €" dell'utente sia la base '0.10€' della progressione in immagine.
+        const PROGRESSION_MULTIPLIERS = [
+            { BIG: 4, MEDI: 2, MINI: 1 }, { BIG: 4, MEDI: 2, MINI: 1 }, { BIG: 4, MEDI: 2, MINI: 1 },
+            { BIG: 6, MEDI: 4, MINI: 1 }, { BIG: 6, MEDI: 4, MINI: 2 }, { BIG: 10, MEDI: 8, MINI: 4 },
+            { BIG: 8, MEDI: 4, MINI: 4 }, { BIG: 8, MEDI: 5, MINI: 4 }, { BIG: 10, MEDI: 5, MINI: 4 },
+            { BIG: 10, MEDI: 6, MINI: 4 }, { BIG: 12, MEDI: 8, MINI: 4 }, { BIG: 12, MEDI: 8, MINI: 4 },
+            { BIG: 8, MEDI: 8, MINI: 4 }, { BIG: 9, MEDI: 9, MINI: 4 }, { BIG: 10, MEDI: 10, MINI: 4 },
+            { BIG: 11, MEDI: 11, MINI: 4 }, { BIG: 12, MEDI: 12, MINI: 4 }, { BIG: 12, MEDI: 12, MINI: 4 },
+            { BIG: 13, MEDI: 13, MINI: 4 }, { BIG: 15, MEDI: 15, MINI: 4 } 
+        ];
+
+        // STATO GLOBALE
+        let numeriEstratti = [];
+        let righeBruciate = new Array(12).fill(false);
+        let mediUscitiPerRiga = new Array(12).fill(0).map(() => new Set()); 
+        let isBettingPhase = false; 
+        let suggestedNumbers = null;
+        let currentStep = 0; // 0 = non in gioco, 1-20 = step corrente
+        let currentSaldo = 0; // Saldo P/L cumulativo
+
+        // Funzione helper per formattare la valuta
+        const formatCurrency = (value) => `€ ${value.toFixed(2).replace('.', ',')}`;
+
+        // Funzione per inizializzare la tabella progressione con gli importi
+        function initializeProgressionTable() {
+            progressionBody.innerHTML = '';
+            const unitValue = parseFloat(valoreUnitarioInput.value) || 0;
+
+            PROGRESSION_MULTIPLIERS.forEach((mult, index) => {
+                const step = index + 1;
+                const riga = progressionBody.insertRow();
+                riga.id = `step-row-${step}`;
+                
+                const bigBet = mult.BIG * unitValue;
+                const medioBet = mult.MEDI * unitValue;
+                const miniBet = mult.MINI * unitValue;
+
+                riga.innerHTML = `
+                    <td>STEP ${step}</td>
+                    <td>${formatCurrency(bigBet)}</td>
+                    <td>${formatCurrency(medioBet)}</td>
+                    <td>${formatCurrency(medioBet)}</td>
+                    <td>${formatCurrency(miniBet)}</td>
+                    <td>${formatCurrency(miniBet)}</td>
+                    <td>${formatCurrency(miniBet)}</td>
+                    <td>${formatCurrency(miniBet)}</td>
+                `;
+            });
+        }
+        
+        // Calcola lo stake totale e i singoli bet per lo step corrente
+        function calculateStake(step, unitValue) {
+            if (step < 1 || step > 20) return null;
+            const mult = PROGRESSION_MULTIPLIERS[step - 1];
+            
+            const bigBet = mult.BIG * unitValue;
+            const medioBet = mult.MEDI * unitValue;
+            const miniBet = mult.MINI * unitValue;
+            
+            // Stake totale: 1 BIG + 2 MEDI + 4 MINI
+            const totalStake = bigBet + (2 * medioBet) + (4 * miniBet);
+
+            return { bigBet, medioBet, miniBet, totalStake };
+        }
+
+        // Funzione per aggiornare l'header della progressione con i numeri selezionati
+        function updateProgressionHeader(numbers) {
+            document.getElementById('big-number').textContent = numbers[0];
+            document.getElementById('medio1-number').textContent = numbers[1];
+            document.getElementById('medio2-number').textContent = numbers[2];
+            document.getElementById('mini1-number').textContent = numbers[3];
+            document.getElementById('mini2-number').textContent = numbers[4];
+            document.getElementById('mini3-number').textContent = numbers[5];
+            document.getElementById('mini4-number').textContent = numbers[6];
+        }
+
+        // Funzione per evidenziare lo step corrente e aggiornare il saldo
+        function highlightStep(newStep) {
+            // Rimuove la classe dallo step precedente
+            if (currentStep >= 1 && currentStep <= 20) {
+                const prevRow = document.getElementById(`step-row-${currentStep}`);
+                if (prevRow) prevRow.classList.remove('active-step');
+            }
+            
+            // Evidenzia il nuovo step
+            if (newStep >= 1 && newStep <= 20) {
+                const newRow = document.getElementById(`step-row-${newStep}`);
+                if (newRow) newRow.classList.add('active-step');
+            }
+            currentStep = newStep;
+        }
+
+        // Funzione per aggiornare la lista dei numeri estratti (in colonna)
+        function updateEstrattiList() {
+            listaEstratti.innerHTML = ''; 
+            const maxDisplay = 30; 
+            numeriEstratti.slice(0, maxDisplay).forEach(numero => {
+                const row = listaEstratti.insertRow();
+                const cell = row.insertCell();
+                cell.textContent = numero;
+            });
+        }
+        
+        function updateSuggestedNumbers(numbers) {
+            if (numbers && numbers.length > 0) {
+                suggestedNumbersElement.innerHTML = `<strong>${numbers.join(', ')}</strong>`;
+            } else {
+                suggestedNumbersElement.textContent = 'Attendendo la Logica...';
+            }
+        }
+
+        // Logica di Bruciatura (Regole 1 & 2) - Ripresa dal passo precedente
+        function checkIfRowBruciata(rigaIndex, numeroEstratto) {
+            if (righeBruciate[rigaIndex]) return; 
+            // ... (logica implementata nel codice precedente, mantenuta per la coerenza)
+            const rigaElemento = righeTabella[rigaIndex];
+            const datiRiga = TABELLA_DATI[rigaIndex];
+
+            // 1. Regola 1: Estrazione di un numero BIG (Prima Colonna)
+            if (datiRiga[0] === numeroEstratto) {
+                righeBruciate[rigaIndex] = true;
+                rigaElemento.classList.add('riga-bruciata');
+                return;
+            }
+
+            // 2. Regola 2: Estrazione di ENTRAMBI i numeri MEDI
+            const numeriMedi = MEDI_PER_RIGA[rigaIndex];
+            if (numeriMedi.includes(numeroEstratto)) {
+                mediUscitiPerRiga[rigaIndex].add(numeroEstratto);
+                
+                if (mediUscitiPerRiga[rigaIndex].size === 2) {
+                    righeBruciate[rigaIndex] = true;
+                    rigaElemento.classList.add('riga-bruciata');
+                }
+            }
+        }
+
+        // Traccia, Brucia, Controlla Vittoria (Logica pre-gioco)
+        function tracciaNumeroPreGame(numero) {
+            let winTriggered = false;
+
+            TABELLA_DATI.forEach((rigaDati, rigaIndex) => {
+                rigaDati.forEach((valore, colonnaIndex) => {
+                    if (valore === numero) {
+                        const rigaElemento = righeTabella[rigaIndex];
+                        const cella = rigaElemento.cells[colonnaIndex];
+                        
+                        let nuovaEvidenziazione = false;
+                        if (!righeBruciate[rigaIndex]) {
+                            if (!cella.classList.contains('evidenziato')) {
+                                cella.classList.add('evidenziato'); 
+                                nuovaEvidenziazione = true;
+                            }
+                        }
+                        
+                        // Check WIN Condition (4 celle evidenziate)
+                        if (!righeBruciate[rigaIndex] && nuovaEvidenziazione) {
+                            const evidenziateNellaRiga = rigaElemento.querySelectorAll('.evidenziato').length;
+
+                            if (evidenziateNellaRiga === 4) { 
+                                triggerBettingPhase(rigaIndex, rigaDati);
+                                winTriggered = true;
+                                return; // Esce dal ciclo interno
+                            }
+                        }
+                        
+                        // Check BRUCIATURA
+                        if (!righeBruciate[rigaIndex]) {
+                            checkIfRowBruciata(rigaIndex, numero);
+                        }
+                    }
+                });
+                if (winTriggered) return; // Esce dal ciclo esterno
+            });
+        }
+        
+        // Funzione CHIAVE: Attivazione della Fase di Gioco
+        function triggerBettingPhase(rigaIndex, rigaDati) {
+            const unitValue = parseFloat(valoreUnitarioInput.value);
+            if (isNaN(unitValue) || unitValue <= 0) {
+                 alert('ATTENZIONE: Inserisci prima un "Valore Unitario €" valido per iniziare la progressione.');
+                 // Riporta lo stato al pre-gioco se il valore è mancante
+                 isBettingPhase = false;
+                 suggestedNumbers = null;
+                 return;
+            }
+
+            isBettingPhase = true;
+            suggestedNumbers = rigaDati;
+            
+            // 1. Aggiorna l'header con i numeri da giocare
+            updateProgressionHeader(rigaDati);
+            updateSuggestedNumbers(rigaDati);
+            
+            // 2. Inizializza al primo step e aggiorna il saldo
+            highlightStep(1);
+            updateSaldoLoss(); // Calcola e registra la perdita (costo) dello Step 1
+            
+            // 3. Pop-up richiesto
+            const numeri = rigaDati.join(', ');
+            alert(`CI SIAMO! I 7 numeri da giocare sono: ${numeri}`);
+        }
+
+        // Logica di Progressione (Fase di Gioco)
+        function processBettingPhase(numeroEstratto) {
+            const unitValue = parseFloat(valoreUnitarioInput.value);
+            const isWin = suggestedNumbers.includes(numeroEstratto);
+            const currentStake = calculateStake(currentStep, unitValue);
+            
+            if (!currentStake) {
+                console.error("Errore nel calcolo dello Stake per lo Step corrente.");
+                return;
+            }
+
+            if (isWin) {
+                // *** SCENARIO DI VINCITA ***
+                
+                // Determina la categoria del numero vincente per trovare la Bet
+                let betOnWinNumber = 0;
+                const winIndex = suggestedNumbers.indexOf(numeroEstratto);
+                if (winIndex === 0) { // BIG (Col 1)
+                    betOnWinNumber = currentStake.bigBet;
+                } else if (winIndex === 1 || winIndex === 2) { // MEDI (Col 2, 3)
+                    betOnWinNumber = currentStake.medioBet;
+                } else { // MINI (Col 4-7)
+                    betOnWinNumber = currentStake.miniBet;
+                }
+
+                // Calcolo Vincita Netta: (Bet * 36) - Total Stake
+                const netProfit = (betOnWinNumber * 36) - currentStake.totalStake;
+                
+                // Aggiorna Saldo
+                currentSaldo += netProfit;
+                saldoRealTime.textContent = formatCurrency(currentSaldo);
+
+                // Mostra Pop-up e resetta la progressione
+                alert(`HAI VINTO ${formatCurrency(netProfit)}! Procedi ad archiviare la giocata. La progressione è stata resettata.`);
+                
+                resetProgressionState();
+
+            } else {
+                // *** SCENARIO DI PERDITA (Avanzamento Step) ***
+                
+                if (currentStep < 20) {
+                    currentStep++;
+                    highlightStep(currentStep);
+                    updateSaldoLoss(); // Aggiorna il saldo con la perdita del nuovo step
+                    console.log(`Passaggio allo Step ${currentStep}.`);
+                } else {
+                    // Ultimo Step raggiunto
+                    alert("Progressione terminata all'ultimo Step (20). Resetta per iniziare una nuova giocata.");
+                    resetProgressionState();
+                }
+            }
+        }
+        
+        // Aggiorna il Saldo in caso di Loss (Nuovo Step)
+        function updateSaldoLoss() {
+             const unitValue = parseFloat(valoreUnitarioInput.value);
+             const currentStake = calculateStake(currentStep, unitValue);
+
+             if (currentStake) {
+                currentSaldo -= currentStake.totalStake;
+                saldoRealTime.textContent = formatCurrency(currentSaldo);
+             } else {
+                console.error("Impossibile calcolare lo stake per l'aggiornamento del saldo.");
+             }
+        }
+
+        // Reset completo della progressione di puntate
+        function resetProgressionState() {
+            isBettingPhase = false;
+            suggestedNumbers = null;
+            currentStep = 0;
+            // NON azzera il Saldo Real Time, ma lo lascia al valore finale (cumulativo)
+            
+            highlightStep(0); // Rimuove l'evidenziazione
+            updateProgressionHeader(['?', '?', '?', '?', '?', '?', '?']); // Pulisce l'header
+            updateSuggestedNumbers(null); // Pulisce i suggerimenti
+        }
+
+
+        // *** LISTENER PRINCIPALI ***
+
+        // Inizializza la progressione alla carica della pagina e all'input del valore unitario
+        window.onload = initializeProgressionTable;
+        valoreUnitarioInput.addEventListener('input', initializeProgressionTable);
+
+
+        // Gestione dell'input del numero estratto
+        inputEstratto.addEventListener('change', (event) => {
+            const valoreInput = event.target.value;
+            if (valoreInput === '') return; 
+
+            const numero = parseInt(valoreInput);
+            
+            if (numero >= 0 && numero <= 36) {
+                // Aggiunge sempre il numero alla lista degli estratti
+                numeriEstratti.unshift(numero); 
+                updateEstrattiList();
+                
+                // Logica principale
+                if (isBettingPhase) {
+                    processBettingPhase(numero);
+                } else {
+                    tracciaNumeroPreGame(numero);
+                }
+
+                // Pulisce e rimette il focus
+                event.target.value = '';
+                event.target.focus();
+            } else {
+                alert('Inserisci un numero valido tra 0 e 36.');
+                event.target.value = '';
+                event.target.focus();
+            }
+        });
+
+        // Gestione del pulsante Reset Numeri (Reset completo di tutte le sessioni)
+        btnResetNumeri.addEventListener('click', () => {
+            if(confirm("Sei sicuro di voler resettare tutti i dati (numeri estratti, bruciature, fase di gioco e saldo)?")) {
+                numeriEstratti = [];
+                righeBruciate = new Array(12).fill(false);
+                mediUscitiPerRiga = new Array(12).fill(0).map(() => new Set()); 
+                currentSaldo = 0; // Azzera il saldo
+                saldoRealTime.textContent = formatCurrency(currentSaldo);
+                
+                updateEstrattiList();
+                
+                // Reset della progressione
+                resetProgressionState();
+
+                // Rimuove tutte le evidenziazioni e bruciature dalla TABELLA DATI
+                righeTabella.forEach(riga => {
+                    riga.classList.remove('riga-bruciata');
+                });
+                tabellaDatiElemento.querySelectorAll('.evidenziato').forEach(cell => {
+                    cell.classList.remove('evidenziato');
+                });
+                
+                inputEstratto.focus();
+                alert('Tutti i dati sono stati resettati.');
+            }
+        });
+        
+        // Gestione del pulsante RESET PROGRESSIONE (solo progressione, non resetta la TABELLA DATI)
+        btnResetProgressione.addEventListener('click', () => {
+             if (confirm("Sei sicuro di voler resettare la progressione di puntate (tornare allo stato pre-gioco)?")) {
+                resetProgressionState();
+                alert('Progressione resettata. In attesa di una nuova riga vincente.');
+             }
+        });
+
+        // Placeholder per il bottone Visualizza archivio (per la seconda schermata)
+        document.getElementById('visualizza-archivio').addEventListener('click', () => {
+            alert('Funzionalità "Visualizza archivio" per la seconda schermata non implementata. Richiede una nuova logica e un nuovo layout.');
+        });
+
+        // Esegue l'inizializzazione iniziale
+        initializeProgressionTable();
+        
+    </script>
+
+</body>
+</html>
 
