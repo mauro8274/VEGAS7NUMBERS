@@ -1023,7 +1023,7 @@
         document.getElementById('reset-archivio').addEventListener('click', async () => {
             const confirmReset = confirm("Sei sicuro di voler ELIMINARE PERMANENTEMENTE TUTTO l'archivio delle statistiche? Questa azione è irreversibile e cancellerà i dati su jsonbin.io.");
             if (confirmReset) {
-                const success = await saveArchivesToRemote([]); // Salva un array vuoto
+                const success = await saveArchivesToRemote([{}]); // Salva un array vuoto
                 if (success) {
                     alert('Archivio statistiche eliminato con successo!');
                     updateArchivePage();
