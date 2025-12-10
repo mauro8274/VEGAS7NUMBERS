@@ -507,6 +507,7 @@
 
                 const result = await response.json();
                 // jsonbin.io restituisce { record: [...], metadata: {...} }
+                // Verifica se il record è un array e lo restituisce, altrimenti restituisce un array vuoto.
                 return Array.isArray(result.record) ? result.record : [];
 
             } catch (error) {
@@ -525,11 +526,12 @@
                 const response = await fetch(JSONBIN_URL, {
                     method: 'PUT', // PUT sovrascrive il contenuto
                     headers: JSONBIN_HEADERS,
-                    body: JSON.stringify(archives)
+                    body: JSON.stringify({ record: archives }) // Inserisce l'array nel wrapper 'record'
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Errore HTTP nel salvataggio: ${response.status}`);
+                    const errorDetail = await response.text();
+                    throw new Error(`Errore HTTP nel salvataggio: ${response.status}. Dettagli: ${errorDetail}`);
                 }
 
                 console.log('Archivio salvato con successo su jsonbin.io.');
@@ -864,58 +866,81 @@
         }
 
         // ===============================================
-        // LOGICA PAGINA ARCHIVIO
+        // LOGICA PAGINA ARCHIVIO (CORRETTA)
         // ===============================================
 
-        function calculateStatsSummary() {
+        function updateStatsTables() {
             let totalSaldo = 0;
             let totalEvents = sessionArchives.length;
             let totalWins = 0;
             let totalLosses = 0;
+            
+            const sessionsBody = document.getElementById('sessions-body');
+            sessionsBody.innerHTML = '';
 
-            sessionArchives.forEach(session => {
-                totalSaldo += session.saldo;
-                if (session.winStep) {
-                    totalWins++;
+            // Itera l'archivio per calcolare le statistiche e renderizzare la tabella
+            sessionArchives.forEach(entry => {
+                
+                // *** CORREZIONE CHIAVE: Forzare il saldo a un numero valido ***
+                // Assicurarsi che entry.saldo sia un numero. Se viene salvato come stringa, 
+                // Number() o parseFloat() la convertiranno.
+                const saldoValue = Number(entry.saldo);
+                
+                if (!isNaN(saldoValue)) {
+                    totalSaldo += saldoValue;
                 } else {
-                    totalLosses++;
+                     // Logga un avviso per dati corrotti (es. '€ NaN')
+                     console.warn("Dato Saldo corrotto rilevato nel database:", entry.saldo);
                 }
+
+                // Conteggio di Vittorie e Perdite (basato su winStep, come nella tua logica)
+                if (entry.winStep) { 
+                    totalWins++; 
+                } else { 
+                    totalLosses++; 
+                }
+
+                // Render della Riga Sessione (dalla più vecchia alla più recente, come l'array originale)
+                const riga = sessionsBody.insertRow();
+                const saldoClass = saldoValue >= 0 ? 'positive-saldo' : 'negative-saldo';
+                const winStepText = entry.winStep ? `Vittoria @ Step ${entry.winStep}` : 'PERDITA / Reset';
+                
+                riga.innerHTML = `
+                    <td>${entry.timestamp}</td>
+                    <td class="${saldoClass}">${formatCurrency(saldoValue)}</td>
+                    <td>${winStepText}</td>
+                `;
             });
+            
+            // Inverti l'ordine per mostrare la più recente in alto (opzionale, ma tipico)
+            // L'HTML non permette di invertire facilmente le righe, ma potremmo iterare al contrario
+            // Se non hai bisogno di mostrare l'ultima in alto, lascia l'HTML così. 
+            // In questo esempio, mantengo l'ordine di inserimento (dal più vecchio al più recente) per semplicità.
 
-            const winPercentage = totalEvents > 0 ? ((totalWins / totalEvents) * 100).toFixed(1) : 0;
-            const saldoClass = totalSaldo >= 0 ? 'positive-saldo' : 'negative-saldo';
-            const saldoFormatted = formatCurrency(totalSaldo);
 
-            document.getElementById('total-saldo').textContent = saldoFormatted;
-            document.getElementById('total-saldo').className = saldoClass;
+            // 4. Calcolo della Percentuale
+            let winPercentage = 0;
+            if (totalEvents > 0) {
+                winPercentage = ((totalWins / totalEvents) * 100).toFixed(1);
+            }
+
+            // 5. Aggiornamento del Riepilogo (Summary)
+            const totalSaldoCell = document.getElementById('total-saldo');
+            
+            totalSaldoCell.textContent = formatCurrency(totalSaldo);
+            totalSaldoCell.classList.remove('positive-saldo', 'negative-saldo');
+            if (totalSaldo > 0) totalSaldoCell.classList.add('positive-saldo');
+            if (totalSaldo < 0) totalSaldoCell.classList.add('negative-saldo');
+            
             document.getElementById('total-events').textContent = totalEvents;
             document.getElementById('total-wins').textContent = totalWins;
             document.getElementById('total-losses').textContent = totalLosses;
             document.getElementById('win-percentage').textContent = `${winPercentage}%`;
         }
-
-        function renderSessionsTable() {
-            const sessionsBody = document.getElementById('sessions-body');
-            sessionsBody.innerHTML = '';
-
-            // Visualizza le sessioni dalla più recente alla più vecchia
-            sessionArchives.slice().reverse().forEach(session => {
-                const row = sessionsBody.insertRow();
-                const saldoClass = session.saldo >= 0 ? 'positive-saldo' : 'negative-saldo';
-                const winStepText = session.winStep ? `Vittoria @ Step ${session.winStep}` : 'PERDITA / Reset';
-
-                row.innerHTML = `
-                    <td>${session.timestamp}</td>
-                    <td class="${saldoClass}">${formatCurrency(session.saldo)}</td>
-                    <td>${winStepText}</td>
-                `;
-            });
-        }
         
         async function updateArchivePage() {
             sessionArchives = await fetchArchivesFromRemote(); // <--- CHIAMATA API
-            calculateStatsSummary();
-            renderSessionsTable();
+            updateStatsTables(); // Funzione unificata per calcolo e rendering
             checkRichiamaUltimiButtonState(); // Aggiorna lo stato del pulsante dopo il caricamento
         }
 
@@ -952,15 +977,19 @@
         // 3. Click su "Reset Progressione"
         btnResetProgressione.addEventListener('click', () => {
              // Archivia la perdita se il gioco era in corso
-             if (isBettingPhase) {
-                const confirmReset = confirm("Sei sicuro di voler resettare la progressione? Se non hai vinto, questa sessione verrà archiviata come PERDITA (Step Max non raggiunto).");
+             if (isBettingPhase && currentSaldo < 0 && winStepForArchive === null) {
+                const confirmReset = confirm("Sei sicuro di voler resettare la progressione? Questa sessione verrà archiviata come PERDITA (Step Max non raggiunto).");
                 if (confirmReset) {
                     archiveCurrentSession(false); // Archivia come perdita
-                    resetProgressionState();
+                    resetAllMainData(); // Resetta lo stato dopo l'archiviazione
                 }
+             } else if (isBettingPhase) {
+                 // Caso in cui si è in progressione ma si è in pareggio o guadagno (non dovrebbe accadere se si è in progressione di perdita)
+                 resetProgressionState();
+                 alert("Progressione resettata.");
              } else {
-                resetProgressionState();
-                alert("Progressione resettata.");
+                 resetProgressionState();
+                 alert("Progressione resettata.");
              }
         });
 
@@ -983,7 +1012,7 @@
         async function archiveCurrentSession(isWin, winStep = null) {
             const newArchive = {
                 timestamp: new Date().toLocaleString('it-IT'),
-                saldo: currentSaldo,
+                saldo: currentSaldo, // Salviamo il saldo come numero
                 winStep: isWin ? winStep : null
             };
 
@@ -998,7 +1027,7 @@
 
             if (success) {
                 sessionArchives = currentArchives; // Aggiorna lo stato locale dopo il salvataggio remoto
-                alert('Sessione archiviata con successo sul database remoto (jsonbin.io)!');
+                alert(`Sessione archiviata con successo! Saldo: ${formatCurrency(currentSaldo)}.`);
             }
             
             // Riabilita l'input dopo l'archiviazione (se disabilitato per la vittoria)
@@ -1023,7 +1052,7 @@
         document.getElementById('reset-archivio').addEventListener('click', async () => {
             const confirmReset = confirm("Sei sicuro di voler ELIMINARE PERMANENTEMENTE TUTTO l'archivio delle statistiche? Questa azione è irreversibile e cancellerà i dati su jsonbin.io.");
             if (confirmReset) {
-                const success = await saveArchivesToRemote([{}]); // Salva un array vuoto
+                const success = await saveArchivesToRemote([]); // Salva un array VUOTO
                 if (success) {
                     alert('Archivio statistiche eliminato con successo!');
                     updateArchivePage();
@@ -1033,18 +1062,6 @@
 
         // 8. Click su "Richiama Ultimi 10 Numeri"
         btnRichiamaUltimi.addEventListener('click', async () => {
-            // Usa il BIN 2 per recuperare gli ultimi 10 numeri se fosse implementato, 
-            // ma per la logica attuale, riutilizziamo il BIN principale 
-            // e assumiamo che il BIN 1 sia l'unico usato per la persistenza.
-            // Se in futuro implementassi BIN 2, questa logica andrebbe modificata.
-            
-            // Per ora, questa funzione sarà utilizzata per recuperare gli ultimi numeri estratti in locale
-            // (se ci fossero stati salvataggi in localStorage, li avremmo presi da lì).
-            // Dato che i numeri estratti non sono salvati nel remote archive (solo il saldo finale), 
-            // questa funzione rimane legata al contesto *locale* o richiede un salvataggio separato.
-            
-            // Se si intende richiamare l'ultimo set di numeri *estratti* prima dell'ultima archiviazione:
-            
             if (numeriEstratti.length === 0) {
                  alert("Nessun numero estratto in locale da richiamare.");
                  return;
@@ -1055,7 +1072,7 @@
             
             // Aggiorna lo stato locale come se questi 10 numeri fossero appena estratti
             numeriEstratti = [];
-            resetAllMainData(); // Resetta lo stato del gioco
+            resetAllMainData(); // Resetta lo stato del gioco (lascia il saldo a 0)
 
             // Inserisce i numeri uno ad uno per rifare l'analisi
             ultimi10.reverse().forEach(numero => {
@@ -1067,8 +1084,8 @@
         });
         
         function checkRichiamaUltimiButtonState() {
-             // Il pulsante Richiama Ultimi 10 è abilitato solo se ci sono numeri estratti
-             btnRichiamaUltimi.disabled = numeriEstratti.length < 10;
+             // Il pulsante Richiama Ultimi 10 è abilitato solo se ci sono almeno 10 numeri estratti
+             btnRichiamaUltimi.disabled = numeriEstratti.length < 10 || isBettingPhase || winStepForArchive !== null;
         }
 
 
@@ -1082,9 +1099,9 @@
 
         async function init() {
             initializeProgressionTable();
-            // Carica l'archivio remoto all'avvio per riempire l'array sessionArchives
+            // Carica l'archivio remoto all'avvio per riempire l'array sessionArchives (non lo visualizza ancora)
             sessionArchives = await fetchArchivesFromRemote(); 
-            // Aggiorna il saldo se salvato localmente (opzionale, mantenere l'attuale 0.00 se il saldo è transitorio)
+            // Aggiorna la visualizzazione del saldo (parte da 0.00)
             saldoRealTime.textContent = formatCurrency(currentSaldo);
             inputEstratto.focus();
         }
