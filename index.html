@@ -507,22 +507,24 @@
 
                 const result = await response.json();
         
-                // Verifica esplicita che 'record' esista e sia un Array.
+                // Verifica esplicita che 'record' esista e sia un Array (come da screenshot fornito).
                 if (result && Array.isArray(result.record)) {
                     // DEBUG: Controlla che il dato estratto sia corretto
                     console.log("Dati estratti dal record:", result.record); 
                     return result.record;
                 } else {
                     console.warn('Il record remoto non è un array o è assente nel corpo della risposta:', result);
-                    return [];
+                    // Ritorna array vuoto se il formato non è quello atteso (es. JSONBin è vuoto e restituisce solo {})
+                    return []; 
                 }
 
             } catch (error) {
-                console.error('Errore durante il recupero remoto dell\'archivio:', error); // <--- LOG AGGIUNTO
-                alert('ATTENZIONE: Errore nel caricamento dell\'archivio remoto.');     // <--- ALERT AGGIUNTO
-                return [];
+                // *** CORREZIONE CRITICA: Blocco catch completo e con return ***
+                console.error('Errore durante il recupero remoto dell\'archivio:', error); 
+                alert('ATTENZIONE: Errore nel caricamento dell\'archivio remoto. Verrà mostrato un archivio vuoto.');     
+                return []; // Ritorna un array vuoto per non bloccare il resto del codice
             }
-        } // <--- PARENTESI GRAFFA DI CHIUSURA RIPRISTINATA
+        }
 
         /**
          * Salva (sovrascrive) l'intero archivio delle sessioni su jsonbin.io.
@@ -533,7 +535,8 @@
                 const response = await fetch(JSONBIN_URL, {
                     method: 'PUT', // PUT sovrascrive il contenuto
                     headers: JSONBIN_HEADERS,
-                    body: JSON.stringify({ record: archives }) // Inserisce l'array nel wrapper 'record'
+                    // Inserisce l'array (o l'oggetto vuoto per reset) nel wrapper 'record'
+                    body: JSON.stringify({ record: archives }) 
                 });
 
                 if (!response.ok) {
@@ -652,7 +655,7 @@
 
                 // Regola: Mostra solo i 3 numeri se siamo in fase di scommessa e lo step è 7 o superiore
                 if (isBettingPhase && currentStep >= 7) {
-                    numbersToDisplay = numbers.slice(0, 3);
+                    numbersToDisplay = [numbers[0], numbers[1], numbers[2]];
                 }
                 
                 suggestedNumbersElement.innerHTML = `<strong>${numbersToDisplay.join(', ')}</strong>`;
@@ -888,26 +891,23 @@
             // Itera l'archivio per calcolare le statistiche e renderizzare la tabella
             sessionArchives.forEach(entry => {
                 
-                // *** CORREZIONE CHIAVE: Forzare il saldo a un numero valido ***
-                // Assicurarsi che entry.saldo sia un numero. Se viene salvato come stringa, 
-                // Number() o parseFloat() la convertiranno.
+                // Forzare il saldo a un numero valido
                 const saldoValue = Number(entry.saldo);
                 
                 if (!isNaN(saldoValue)) {
                     totalSaldo += saldoValue;
                 } else {
-                     // Logga un avviso per dati corrotti (es. '€ NaN')
                      console.warn("Dato Saldo corrotto rilevato nel database:", entry.saldo);
                 }
 
-                // Conteggio di Vittorie e Perdite (basato su winStep, come nella tua logica)
+                // Conteggio di Vittorie e Perdite
                 if (entry.winStep) { 
                     totalWins++; 
                 } else { 
                     totalLosses++; 
                 }
 
-                // Render della Riga Sessione (dalla più vecchia alla più recente, come l'array originale)
+                // Render della Riga Sessione
                 const riga = sessionsBody.insertRow();
                 const saldoClass = saldoValue >= 0 ? 'positive-saldo' : 'negative-saldo';
                 const winStepText = entry.winStep ? `Vittoria @ Step ${entry.winStep}` : 'PERDITA / Reset';
@@ -949,9 +949,6 @@
             } else {
                 sessionArchives = [];
             }
-
-            // DEBUG: Mostra cosa contiene sessionArchives PRIMA di calcolare le statistiche
-            console.log("Contenuto di sessionArchives prima di updateStatsTables:", sessionArchives);
             
             // 3. Visualizza e calcola le statistiche
             updateStatsTables(); 
@@ -1066,8 +1063,7 @@
         document.getElementById('reset-archivio').addEventListener('click', async () => {
             const confirmReset = confirm("Sei sicuro di voler ELIMINARE PERMANENTEMENTE TUTTO l'archivio delle statistiche? Questa azione è irreversibile e cancellerà i dati su jsonbin.io.");
             if (confirmReset) {
-                // CORREZIONE APPLICATA: Si passa l'array vuoto [] a saveArchivesToRemote
-                // che poi lo wrappa in {"record": []} come richiesto da JSONBin.io.
+                // Passiamo un array vuoto [], che viene correttamente wrappato in {"record": []}
                 const success = await saveArchivesToRemote([]); 
                 if (success) {
                     alert('Archivio statistiche eliminato con successo!');
