@@ -506,15 +506,18 @@
                 }
 
                 const result = await response.json();
-                // jsonbin.io restituisce { record: [...], metadata: {...} }
-                // Verifica se il record è un array e lo restituisce, altrimenti restituisce un array vuoto.
-                return Array.isArray(result.record) ? result.record : [];
+        
+        // Verifica esplicita che 'record' esista e sia un Array.
+        if (result && Array.isArray(result.record)) {
+            // DEBUG: Controlla che il dato estratto sia corretto
+            console.log("Dati estratti dal record:", result.record); 
+            return result.record;
+        } else {
+            console.warn('Il record remoto non è un array o è assente nel corpo della risposta:', result);
+            return [];
+        }
 
-            } catch (error) {
-                console.error('Errore durante il recupero remoto dell\'archivio:', error);
-                alert('ATTENZIONE: Errore nel caricamento dell\'archivio remoto. Verrà usato un archivio locale vuoto.');
-                return []; 
-            }
+    } catch (error) {
         }
 
         /**
@@ -939,10 +942,23 @@
         }
         
         async function updateArchivePage() {
-            sessionArchives = await fetchArchivesFromRemote(); // <--- CHIAMATA API
-            updateStatsTables(); // Funzione unificata per calcolo e rendering
-            checkRichiamaUltimiButtonState(); // Aggiorna lo stato del pulsante dopo il caricamento
-        }
+    // 1. Forza il recupero dei dati freschi dal server
+    const fetchedArchives = await fetchArchivesFromRemote(); 
+
+    // 2. Se i dati sono validi, aggiorna l'archivio locale.
+    if (Array.isArray(fetchedArchives)) {
+        sessionArchives = fetchedArchives;
+    } else {
+        sessionArchives = [];
+    }
+
+    // DEBUG: Mostra cosa contiene sessionArchives PRIMA di calcolare le statistiche
+    console.log("Contenuto di sessionArchives prima di updateStatsTables:", sessionArchives);
+    
+    // 3. Visualizza e calcola le statistiche
+    updateStatsTables(); 
+    checkRichiamaUltimiButtonState();
+}
 
         // ===============================================
         // GESTIONE EVENTI PRINCIPALE
