@@ -482,6 +482,7 @@
 
         /**
          * Recupera l'archivio delle sessioni da jsonbin.io.
+         * Formato array alla radice ([...]).
          * @returns {Array} L'array delle sessioni archiviate o un array vuoto.
          */
         async function fetchArchivesFromRemote() {
@@ -494,20 +495,24 @@
                 });
 
                 if (!response.ok) {
-                    // Controlla il caso di bin vuoto o appena creato che potrebbe dare 404
                     if (response.status === 404) return []; 
                     throw new Error(`Errore HTTP nel recupero: ${response.status}`);
                 }
 
                 const result = await response.json();
         
-                // Verifica esplicita che 'record' esista e sia un Array.
-                if (result && Array.isArray(result.record)) {
-                    console.log("Dati estratti dal record:", result.record.length, "sessioni."); 
-                    return result.record;
-                } else {
-                    console.warn('Il record remoto non è un array o è assente nel corpo della risposta:', result);
-                    // Ritorna array vuoto se il formato non è quello atteso (es. JSONBin è vuoto e restituisce solo {})
+                // Ci aspettiamo che 'result' sia direttamente l'array
+                if (Array.isArray(result)) {
+                    console.log("Dati estratti: array di", result.length, "sessioni."); 
+                    return result;
+                } 
+                // Logica di backup nel caso JSONBin restituisca un wrapper
+                else if (result && Array.isArray(result.record)) {
+                     console.log("Dati estratti dal record: array di", result.record.length, "sessioni."); 
+                     return result.record;
+                }
+                else {
+                    console.warn('Risposta remota non è un array valido. Restituito array vuoto.', result);
                     return []; 
                 }
 
@@ -520,13 +525,14 @@
 
         /**
          * Salva (sovrascrive) l'intero archivio delle sessioni su jsonbin.io.
-         * FIX: Risolve l'errore "Cannot read properties of undefined (reading 'record')"
+         * Formato array alla radice ([...]).
+         * Corretto: evita di parsare la risposta JSON per prevenire errori sul PUT.
          * @param {Array} archives - L'array completo da salvare.
          */
         async function saveArchivesToRemote(archives) {
             try {
-                // JSONBin.io richiede l'array dentro l'oggetto 'record'
-                const payload = JSON.stringify({ record: archives });
+                // Invia direttamente l'array come payload
+                const payload = JSON.stringify(archives); 
                 console.log('Invio payload a JSONBin (dimensione):', payload.length); 
 
                 const response = await fetch(JSONBIN_URL, {
@@ -536,17 +542,13 @@
                 });
 
                 if (!response.ok) {
-                    // Se la risposta non è OK, solleva un errore
                     const errorDetail = await response.text();
                     throw new Error(`Errore HTTP nel salvataggio: ${response.status}. Dettagli: ${errorDetail}`);
                 }
 
-                // La richiesta PUT è stata un successo (status 200-299).
-                // Non è necessario leggere la proprietà 'record' dalla risposta di conferma.
+                // FIX: Rimuoviamo la chiamata a response.json() che causava l'errore
+                // quando il server risponde con successo ma con un corpo vuoto/non-JSON.
                 console.log('Archivio salvato con successo su jsonbin.io.');
-                
-                // Opzionale: consuma la risposta JSON per evitare warning in console, ma non la usiamo per la verifica
-                await response.json(); 
                 
                 return true;
 
@@ -559,8 +561,6 @@
         
         /**
          * Funzione per archiviare la sessione corrente in modo remoto e resettare lo stato.
-         * @param {boolean} isWin - Indica se la sessione si è conclusa con una vincita.
-         * @param {number|null} winStep - Lo step di progressione in cui c'è stata la vittoria (o null).
          */
         async function archiveCurrentSession(isWin, winStep = null) {
             const newArchive = {
@@ -583,11 +583,9 @@
                 alert(`Sessione archiviata con successo! Saldo: ${formatCurrency(currentSaldo)}.`);
             }
             
-            // Mantiene il salvataggio dei numeri estratti localmente (non nel bin remoto)
             saveLastExtractedNumbers(); 
             resetAllMainData(); 
 
-            // Riabilita l'input dopo l'archiviazione
             inputEstratto.disabled = false;
         }
 
@@ -597,18 +595,15 @@
 
         function loadLastExtractedNumbers() {
             const data = localStorage.getItem('vegas7_last_10_numbers');
-            // Nota: Nel tuo file index (2).html hai fatto riferimento a loadLastExtractedNumbersFromCloud()
-            // ma l'hai implementata usando localStorage. Mantengo qui localStorage per semplicità.
             return data ? JSON.parse(data) : [];
         }
         function saveLastExtractedNumbers() {
-            // Salva solo i primi 10 numeri estratti (i più recenti)
             const last10 = numeriEstratti.slice(0, 10);
             localStorage.setItem('vegas7_last_10_numbers', JSON.stringify(last10));
         }
 
         // ===============================================
-        // LOGICA PAGINA ARCHIVIO (AGG. REMOTO)
+        // LOGICA PAGINA ARCHIVIO
         // ===============================================
 
         function updateStatsTables() {
@@ -620,26 +615,21 @@
             const sessionsBody = document.getElementById('sessions-body');
             sessionsBody.innerHTML = '';
 
-            // Itera l'archivio per calcolare le statistiche e renderizzare la tabella
             sessionArchives.forEach(entry => {
-                // Gestisce il caso in cui il saldo non sia un numero (per dati corrotti)
                 const saldoValue = Number(entry.saldo); 
                 
                 if (!isNaN(saldoValue)) {
                     totalSaldo += saldoValue;
                 }
 
-                // Conteggio di Vittorie e Perdite
                 if (entry.winStep) { 
                     totalWins++; 
                 } else { 
-                    // Contiamo come perdita solo se il saldo è negativo, altrimenti è un reset neutrale
                     if (saldoValue < 0) {
                          totalLosses++; 
                     }
                 }
 
-                // Render della Riga Sessione
                 const riga = sessionsBody.insertRow();
                 const saldoClass = saldoValue >= 0 ? 'positive-saldo' : 'negative-saldo';
                 const winStepText = entry.winStep ? `Vittoria @ Step ${entry.winStep}` : (saldoValue < 0 ? 'PERDITA' : 'Reset neutrale');
@@ -651,13 +641,11 @@
                 `;
             });
             
-            // 4. Calcolo della Percentuale
             let winPercentage = 0;
             if (totalEvents > 0) {
-                winPercentage = ((totalWins / totalEvents) * 100).toFixed(1);
+                winPercentage = ((totalWins / totalEvents) * 100).toFixed(1); 
             }
 
-            // 5. Aggiornamento del Riepilogo (Summary)
             const totalSaldoCell = document.getElementById('total-saldo');
             
             totalSaldoCell.textContent = formatCurrency(totalSaldo);
@@ -671,19 +659,15 @@
             document.getElementById('win-percentage').textContent = `${winPercentage}%`;
         }
         
-        /** Carica l'archivio da remoto e aggiorna la pagina Statistiche */
         async function updateArchivePage() {
-            // 1. Forza il recupero dei dati freschi dal server
             const fetchedArchives = await fetchArchivesFromRemote(); 
 
-            // 2. Aggiorna l'archivio locale di sessioni
             if (Array.isArray(fetchedArchives)) {
                 sessionArchives = fetchedArchives;
             } else {
                 sessionArchives = [];
             }
             
-            // 3. Visualizza e calcola le statistiche
             updateStatsTables(); 
             checkRichiamaUltimiButtonState();
         }
@@ -691,7 +675,7 @@
         async function resetStatsArchive() {
             const confirmReset = confirm("Sei sicuro di voler ELIMINARE PERMANENTEMENTE TUTTO l'archivio delle statistiche? Questa azione è irreversibile e cancellerà i dati su jsonbin.io.");
             if (confirmReset) {
-                // Passa un array vuoto per sovrascrivere il bin
+                // Passa un array vuoto [] come richiesto per sovrascrivere il bin
                 const success = await saveArchivesToRemote([]); 
                 if (success) {
                     // Cancella anche i numeri estratti locali per coerenza
@@ -704,7 +688,7 @@
         }
         
         async function displayStatsPage() {
-            await updateArchivePage(); // Chiama la funzione ASYNC che carica da remoto e aggiorna le tabelle
+            await updateArchivePage();
             
             document.getElementById('back-to-main').addEventListener('click', () => { 
                 statsPage.style.display = 'none';
