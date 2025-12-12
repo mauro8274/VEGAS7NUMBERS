@@ -408,7 +408,7 @@
         // ===============================================
         // *** CONFIGURAZIONE JSONBIN.IO ***
         // ===============================================
-        // AGGIORNA QUESTE CHIAVI CON LE TUE CREDENZIALI
+        // AGGIORNA QUESTE CHIAVI CON LE TUE CREDENZIALI REALI
         const JSONBIN_ACCESS_KEY = '$2a$10$jyfQtGxraAzGJat.A7ksZ.Z4RQ2Tjzx3YvAwd7Ro.seCzFmfE3PyC';
         const JSONBIN_BIN_ID = '69395cce43b1c97be9e44dcc';
         const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
@@ -438,7 +438,7 @@
         const suggestedNumbersElement = document.getElementById('numeri-suggeriti');
         const righeTabella = tabellaDatiElemento.querySelectorAll('tbody tr');
         
-        // ... (Omessa la definizione di TABELLA_DATI, MEDI_PER_RIGA, PROGRESSION_MULTIPLIERS per brevità, sono presenti nel codice)
+        
         const TABELLA_DATI = [
             [2, 1, 3, 36, 4, 34, 6], [5, 4, 6, 1, 9, 3, 7], [8, 9, 7, 4, 12, 6, 10],
             [11, 12, 10, 9, 13, 7, 15], [14, 13, 15, 12, 16, 10, 18], [17, 16, 18, 13, 21, 15, 19],
@@ -520,6 +520,7 @@
 
         /**
          * Salva (sovrascrive) l'intero archivio delle sessioni su jsonbin.io.
+         * FIX: Risolve l'errore "Cannot read properties of undefined (reading 'record')"
          * @param {Array} archives - L'array completo da salvare.
          */
         async function saveArchivesToRemote(archives) {
@@ -535,11 +536,18 @@
                 });
 
                 if (!response.ok) {
+                    // Se la risposta non è OK, solleva un errore
                     const errorDetail = await response.text();
                     throw new Error(`Errore HTTP nel salvataggio: ${response.status}. Dettagli: ${errorDetail}`);
                 }
 
+                // La richiesta PUT è stata un successo (status 200-299).
+                // Non è necessario leggere la proprietà 'record' dalla risposta di conferma.
                 console.log('Archivio salvato con successo su jsonbin.io.');
+                
+                // Opzionale: consuma la risposta JSON per evitare warning in console, ma non la usiamo per la verifica
+                await response.json(); 
+                
                 return true;
 
             } catch (error) {
@@ -589,6 +597,8 @@
 
         function loadLastExtractedNumbers() {
             const data = localStorage.getItem('vegas7_last_10_numbers');
+            // Nota: Nel tuo file index (2).html hai fatto riferimento a loadLastExtractedNumbersFromCloud()
+            // ma l'hai implementata usando localStorage. Mantengo qui localStorage per semplicità.
             return data ? JSON.parse(data) : [];
         }
         function saveLastExtractedNumbers() {
@@ -612,7 +622,8 @@
 
             // Itera l'archivio per calcolare le statistiche e renderizzare la tabella
             sessionArchives.forEach(entry => {
-                const saldoValue = Number(entry.saldo); // Assicura che sia un numero
+                // Gestisce il caso in cui il saldo non sia un numero (per dati corrotti)
+                const saldoValue = Number(entry.saldo); 
                 
                 if (!isNaN(saldoValue)) {
                     totalSaldo += saldoValue;
@@ -622,13 +633,16 @@
                 if (entry.winStep) { 
                     totalWins++; 
                 } else { 
-                    totalLosses++; 
+                    // Contiamo come perdita solo se il saldo è negativo, altrimenti è un reset neutrale
+                    if (saldoValue < 0) {
+                         totalLosses++; 
+                    }
                 }
 
                 // Render della Riga Sessione
                 const riga = sessionsBody.insertRow();
                 const saldoClass = saldoValue >= 0 ? 'positive-saldo' : 'negative-saldo';
-                const winStepText = entry.winStep ? `Vittoria @ Step ${entry.winStep}` : 'PERDITA / Reset';
+                const winStepText = entry.winStep ? `Vittoria @ Step ${entry.winStep}` : (saldoValue < 0 ? 'PERDITA' : 'Reset neutrale');
                 
                 riga.innerHTML = `
                     <td>${entry.timestamp}</td>
@@ -683,6 +697,7 @@
                     // Cancella anche i numeri estratti locali per coerenza
                     localStorage.removeItem('vegas7_last_10_numbers'); 
                     alert('Archivio statistiche eliminato con successo!');
+                    // Aggiorna la pagina Statistiche subito dopo il reset per mostrare l'archivio vuoto
                     updateArchivePage();
                 }
             }
@@ -705,7 +720,7 @@
 
 
         // ===============================================
-        // FUNZIONI UTILITY E DI GIOCO (NON MODIFICATE)
+        // FUNZIONI UTILITY E DI GIOCO 
         // ===============================================
         const formatCurrency = (value) => `€ ${value.toFixed(2).replace('.', ',')}`;
         
@@ -994,6 +1009,7 @@
                 el.classList.remove('evidenziato', 'riga-bruciata');
             });
             
+            // Analizza i numeri dal più vecchio al più recente (invertendo la lista)
             numbers.slice().reverse().forEach(numero => {
                 tracciaNumeroPreGame(numero, true); 
             });
@@ -1057,7 +1073,7 @@
         btnResetProgressione.addEventListener('click', async () => {
              // Archivia la perdita se il gioco era in corso e non c'è stata una vittoria
              if (isBettingPhase && currentSaldo < 0 && winStepForArchive === null) {
-                const confirmReset = confirm("Sei sicuro di voler resettare la progressione? Questa sessione verrà archiviata come PERDITA (Step Max non raggiunto).");
+                const confirmReset = confirm("Sei sicuro di voler resettare la progressione? Questa sessione verrà archiviata come PERDITA.");
                 if (confirmReset) {
                     await archiveCurrentSession(false); // Archivia come perdita e resetta
                     alert('Progressione e sessione archiviata come perdita sono state resettate.');
@@ -1096,10 +1112,13 @@
         btnRichiamaUltimi.addEventListener('click', () => {
             const lastNumbers = loadLastExtractedNumbers();
             if (lastNumbers.length > 0) {
-                resetAllMainData();
-                numeriEstratti = lastNumbers;
-                analyzeExtractedNumbers(numeriEstratti);
-                alert(`Caricati ${lastNumbers.length} numeri dalla sessione precedente.`);
+                if(confirm(`Sei sicuro di voler caricare gli ultimi ${lastNumbers.length} numeri salvati per l'analisi? Lo stato corrente (saldo, progressione) verrà resettato.`)) {
+                    resetAllMainData();
+                    // Carica i numeri salvati localmente
+                    numeriEstratti = lastNumbers;
+                    analyzeExtractedNumbers(numeriEstratti);
+                    alert(`Caricati ${lastNumbers.length} numeri dalla sessione precedente.`);
+                }
             } else {
                 alert('Nessun numero precedente salvato da richiamare.');
             }
