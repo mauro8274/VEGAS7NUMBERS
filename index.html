@@ -507,18 +507,22 @@
 
                 const result = await response.json();
         
-        // Verifica esplicita che 'record' esista e sia un Array.
-        if (result && Array.isArray(result.record)) {
-            // DEBUG: Controlla che il dato estratto sia corretto
-            console.log("Dati estratti dal record:", result.record); 
-            return result.record;
-        } else {
-            console.warn('Il record remoto non è un array o è assente nel corpo della risposta:', result);
-            return [];
-        }
+                // Verifica esplicita che 'record' esista e sia un Array.
+                if (result && Array.isArray(result.record)) {
+                    // DEBUG: Controlla che il dato estratto sia corretto
+                    console.log("Dati estratti dal record:", result.record); 
+                    return result.record;
+                } else {
+                    console.warn('Il record remoto non è un array o è assente nel corpo della risposta:', result);
+                    return [];
+                }
 
-    } catch (error) {
-        }
+            } catch (error) {
+                console.error('Errore durante il recupero remoto dell\'archivio:', error); // <--- LOG AGGIUNTO
+                alert('ATTENZIONE: Errore nel caricamento dell\'archivio remoto.');     // <--- ALERT AGGIUNTO
+                return [];
+            }
+        } // <--- PARENTESI GRAFFA DI CHIUSURA RIPRISTINATA
 
         /**
          * Salva (sovrascrive) l'intero archivio delle sessioni su jsonbin.io.
@@ -648,7 +652,7 @@
 
                 // Regola: Mostra solo i 3 numeri se siamo in fase di scommessa e lo step è 7 o superiore
                 if (isBettingPhase && currentStep >= 7) {
-                    numbersToDisplay = [numbers[0], numbers[1], numbers[2]];
+                    numbersToDisplay = numbers.slice(0, 3);
                 }
                 
                 suggestedNumbersElement.innerHTML = `<strong>${numbersToDisplay.join(', ')}</strong>`;
@@ -915,12 +919,6 @@
                 `;
             });
             
-            // Inverti l'ordine per mostrare la più recente in alto (opzionale, ma tipico)
-            // L'HTML non permette di invertire facilmente le righe, ma potremmo iterare al contrario
-            // Se non hai bisogno di mostrare l'ultima in alto, lascia l'HTML così. 
-            // In questo esempio, mantengo l'ordine di inserimento (dal più vecchio al più recente) per semplicità.
-
-
             // 4. Calcolo della Percentuale
             let winPercentage = 0;
             if (totalEvents > 0) {
@@ -942,23 +940,23 @@
         }
         
         async function updateArchivePage() {
-    // 1. Forza il recupero dei dati freschi dal server
-    const fetchedArchives = await fetchArchivesFromRemote(); 
+            // 1. Forza il recupero dei dati freschi dal server
+            const fetchedArchives = await fetchArchivesFromRemote(); 
 
-    // 2. Se i dati sono validi, aggiorna l'archivio locale.
-    if (Array.isArray(fetchedArchives)) {
-        sessionArchives = fetchedArchives;
-    } else {
-        sessionArchives = [];
-    }
+            // 2. Se i dati sono validi, aggiorna l'archivio locale.
+            if (Array.isArray(fetchedArchives)) {
+                sessionArchives = fetchedArchives;
+            } else {
+                sessionArchives = [];
+            }
 
-    // DEBUG: Mostra cosa contiene sessionArchives PRIMA di calcolare le statistiche
-    console.log("Contenuto di sessionArchives prima di updateStatsTables:", sessionArchives);
-    
-    // 3. Visualizza e calcola le statistiche
-    updateStatsTables(); 
-    checkRichiamaUltimiButtonState();
-}
+            // DEBUG: Mostra cosa contiene sessionArchives PRIMA di calcolare le statistiche
+            console.log("Contenuto di sessionArchives prima di updateStatsTables:", sessionArchives);
+            
+            // 3. Visualizza e calcola le statistiche
+            updateStatsTables(); 
+            checkRichiamaUltimiButtonState();
+        }
 
         // ===============================================
         // GESTIONE EVENTI PRINCIPALE
@@ -1068,7 +1066,9 @@
         document.getElementById('reset-archivio').addEventListener('click', async () => {
             const confirmReset = confirm("Sei sicuro di voler ELIMINARE PERMANENTEMENTE TUTTO l'archivio delle statistiche? Questa azione è irreversibile e cancellerà i dati su jsonbin.io.");
             if (confirmReset) {
-                const success = await saveArchivesToRemote({}); // Salva un array VUOTO
+                // CORREZIONE APPLICATA: Si passa l'array vuoto [] a saveArchivesToRemote
+                // che poi lo wrappa in {"record": []} come richiesto da JSONBin.io.
+                const success = await saveArchivesToRemote([]); 
                 if (success) {
                     alert('Archivio statistiche eliminato con successo!');
                     updateArchivePage();
