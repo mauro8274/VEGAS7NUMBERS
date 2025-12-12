@@ -507,7 +507,7 @@
 
                 const result = await response.json();
         
-                // Verifica esplicita che 'record' esista e sia un Array (come da screenshot fornito).
+                // Verifica esplicita che 'record' esista e sia un Array.
                 if (result && Array.isArray(result.record)) {
                     // DEBUG: Controlla che il dato estratto sia corretto
                     console.log("Dati estratti dal record:", result.record); 
@@ -532,11 +532,14 @@
          */
         async function saveArchivesToRemote(archives) {
             try {
+                const payload = JSON.stringify({ record: archives });
+                console.log('Invio payload a JSONBin:', payload); // LOG CRITICO
+
                 const response = await fetch(JSONBIN_URL, {
                     method: 'PUT', // PUT sovrascrive il contenuto
                     headers: JSONBIN_HEADERS,
                     // Inserisce l'array (o l'oggetto vuoto per reset) nel wrapper 'record'
-                    body: JSON.stringify({ record: archives }) 
+                    body: payload 
                 });
 
                 if (!response.ok) {
@@ -1063,6 +1066,7 @@
         document.getElementById('reset-archivio').addEventListener('click', async () => {
             const confirmReset = confirm("Sei sicuro di voler ELIMINARE PERMANENTEMENTE TUTTO l'archivio delle statistiche? Questa azione è irreversibile e cancellerà i dati su jsonbin.io.");
             if (confirmReset) {
+                console.log("Tentativo di invio array vuoto: [] per correggere il formato remoto."); // LOG CRITICO
                 // CORRETTO: Passiamo un array vuoto [], che viene correttamente wrappato in {"record": []}
                 const success = await saveArchivesToRemote([]); 
                 if (success) {
