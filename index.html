@@ -3,1114 +3,990 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VEGAS 7 NUMBERS</title>
+    <title>Roulette Tracker & Strategia</title>
     <style>
-        /* CSS per la Reattività e lo Stile */
+        /* CSS per Stile e Responsiveness */
         :root {
-            --green-bg: #4CAF50; 
-            --light-gray-bg: #f0f0f0; 
-            --red-btn: #f44336;
-            --blue-btn: #2196F3;
-            --text-color: #333;
-            --border-color: #ccc;
-            --light-green: #e8ffe8; 
-            --win-green: #2ecc71; 
-            --dark-blue: #34495e; 
-            --disabled-color: #95a5a6; 
+            --green-dark: #006400; /* Verde scuro, come un tavolo da roulette */
+            --green-light: #90ee90; /* Verde chiaro per evidenziare */
+            --red: #ff4500; /* Rosso per il testo saldo negativo */
+            --black: #000000;
+            --white: #ffffff;
+            --gold: #ffd700;
+            --gray-light: #f0f0f0;
         }
 
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: var(--green-bg); 
-            color: var(--text-color);
-        }
-
-        /* STILE INTESTAZIONE IMMAGINE */
-        .header-image-container {
-            text-align: center;
-            padding: 10px 0;
-            margin: 0;
-        }
-        .header-image-container img {
-            max-width: 100%; /* Rende l'immagine responsiva */
-            height: auto;
-            max-height: 100px; /* Limita l'altezza per non occupare troppo spazio */
+            background-color: var(--green-dark);
+            color: var(--white);
+            transition: background-color 0.5s;
         }
 
         .container {
             max-width: 1200px;
-            margin: 0 auto;
+            margin: auto;
             padding: 10px;
         }
 
-        /* Gestione delle Pagine */
-        .page-content {
-            display: none; 
-        }
-        #main-page {
-            display: block; 
-        }
-        
-        /* Area Input Principale */
-        .input-area {
-            background-color: var(--light-gray-bg); 
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+        /* Testo e Campi di Input */
+        .header h1 {
+            text-align: center;
+            color: var(--gold);
+            margin-bottom: 5px;
         }
 
-        /* Campi di Input */
-        .input-group {
-            display: flex;
-            flex-wrap: wrap; 
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-        .input-group label {
-            font-weight: bold;
-            flex-basis: 100%; 
-        }
-        .input-group input[type="number"],
-        .input-group .calculated-field {
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 1em;
-            flex-grow: 1; 
-            min-width: 120px; 
-        }
-        .input-group .calculated-field {
-            background-color: white; 
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            min-height: 40px; 
-        }
-
-        /* Bottoni */
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            justify-content: space-around;
-        }
-        .action-buttons {
-            display: flex;
-            gap: 10px;
+        label {
+            display: block;
             margin-top: 10px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            color: white;
             font-weight: bold;
-            cursor: pointer;
-            flex-grow: 1;
-            max-width: 200px; 
-            transition: background-color 0.3s;
-        }
-        .btn-red { background-color: var(--red-btn); }
-        .btn-blue { background-color: var(--blue-btn); }
-        .btn:hover:not(:disabled) { opacity: 0.9; }
-
-        .btn-archive-action { 
-            background-color: var(--dark-blue);
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            flex-grow: 1;
-        }
-        .btn-archive-action:disabled {
-            background-color: var(--disabled-color);
-            cursor: not-allowed;
         }
 
-        .data-section {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: space-around;
-        }
-        .extracted-numbers-container, .suggested-numbers-area {
-            flex: 1 1 200px; 
-            background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        .suggested-numbers-area { text-align: center; }
-        #numeri-suggeriti {
-            font-size: 1.8em;
-            color: var(--win-green); 
-            margin: 10px 0 0;
-            word-wrap: break-word; 
-        }
-        .extracted-numbers-table { width: 100%; border-collapse: collapse; }
-        .extracted-numbers-table th, .extracted-numbers-table td { border: 1px solid var(--border-color); padding: 8px; text-align: center; }
-
-        .data-table-container {
-            flex: 3 1 400px; 
-            background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            overflow-x: auto; 
-        }
-        .data-table { width: 100%; border-collapse: collapse; }
-        .data-table th, .data-table td { border: 1px solid #000; padding: 8px 5px; text-align: center; font-size: 0.9em; }
-        .data-table th { background-color: #e0e0e0; }
-
-        .evidenziato { background-color: #ffffa8 !important; color: #333; font-weight: bold; } 
-        .riga-bruciata { background-color: #ff4d4d !important; color: white; font-weight: bold; } 
-        .riga-bruciata td { background-color: transparent !important; color: white; }
-
-        .progression-section {
-            background-color: white;
-            padding: 15px;
-            margin-top: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            overflow-x: auto;
-        }
-        .progression-table {
+        input[type="number"], input[type="text"] {
             width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85em;
-        }
-        .progression-table th, .progression-table td {
-            border: 1px solid #000;
-            padding: 6px 4px;
+            padding: 12px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid var(--gold);
+            box-sizing: border-box;
+            background-color: var(--white);
+            color: var(--black);
+            font-size: 1.1em;
             text-align: center;
         }
-        .progression-table thead th {
-            background-color: #333;
-            color: white;
+
+        /* Contenitori per Saldo e Scommessa */
+        .info-box {
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        #saldoRealTimeContainer {
+            text-align: center;
+        }
+        
+        #saldoRealTimeValue {
+            font-size: 2em;
+            font-weight: bold;
+            display: block;
+            margin-top: 5px;
+            padding: 5px;
+            border-radius: 5px;
+            background-color: var(--white);
+            color: var(--red); /* Default negativo */
+        }
+
+        #scommessaContainer {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: var(--black);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        #scommessaContainer h3 {
+            margin-top: 0;
+            color: var(--green-dark);
+        }
+
+        #scommessaValue {
+            font-size: 1.2em;
+            font-weight: bold;
+            line-height: 1.5;
+            color: var(--black);
+        }
+
+        /* Tabelle */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             font-size: 0.9em;
         }
-        .header-big { background-color: #555 !important; }
-        .header-medio { background-color: #e67e22 !important; }
-        .header-mini { background-color: #27ae60 !important; }
 
-        .active-step {
-            background-color: var(--light-green) !important;
-            font-weight: bold;
-        }
-        .reset-progression-btn {
-            background-color: var(--dark-blue);
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 15px;
-            display: block;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
+        th {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: var(--gold);
+            position: sticky;
+            top: 0;
         }
         
-        /* STILI PAGINA STATISTICHE (RIDUZIONE FONT/PADDING) */
-        #stats-page {
-            background-color: var(--light-gray-bg);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        /* Aggiungo uno stile specifico per le celle data/ora nell'archivio */
+        #archiveTable td:nth-child(1), #archiveTable td:nth-child(2) { 
+            font-size: 0.8em; 
+            white-space: nowrap;
         }
-        .stats-summary, .stats-sessions {
-            margin-bottom: 20px;
-        }
-        .stats-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 0.9em; 
-        }
-        .stats-table th, .stats-table td {
-            border: 1px solid var(--border-color);
-            padding: 8px; 
-            text-align: center;
-        }
-        .stats-table th {
-            background-color: #ddd;
-        }
-        .positive-saldo { color: var(--win-green); font-weight: bold; }
-        .negative-saldo { color: var(--red-btn); font-weight: bold; }
 
-        /* Media Query per schermi grandi */
-        @media (min-width: 600px) {
-            .input-group label { flex-basis: auto; margin-right: 10px; }
-            .input-group { justify-content: space-between; }
-            .input-group input[type="number"], .input-group .calculated-field { flex-grow: 0; width: calc(33% - 15px); }
-            .action-buttons button { max-width: 200px; }
+        .highlighted-row {
+            background-color: var(--green-light) !important;
+            color: var(--black);
+            font-weight: bold;
+        }
+
+        /* Pulsanti */
+        .button-group, .button-group-archive {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            margin-bottom: 20px; 
+            flex-wrap: wrap; /* Per smartphone */
+        }
+
+        button {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            font-size: 1em;
+            min-width: 120px;
+        }
+        
+        #btnArchivia { background-color: #1e90ff; color: var(--white); }
+        #btnArchivia:hover { background-color: #4169e1; }
+
+        #btnResetSession { background-color: #dc3545; color: var(--white); }
+        #btnResetSession:hover { background-color: #c82333; }
+
+        #btnToArchive { background-color: #ffc107; color: var(--black); }
+        #btnToArchive:hover { background-color: #e0a800; }
+        
+        #btnToGameFromArchive { background-color: #28a745; color: var(--white); }
+        #btnToGameFromArchive:hover { background-color: #1e7e34; }
+        
+        #btnResetArchive { background-color: #6c757d; color: var(--white); }
+        #btnResetArchive:hover { background-color: #5a6268; }
+
+        /* Viste (Gioco e Archivio) */
+        .view {
+            display: none;
+        }
+
+        #archiveView {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            min-height: 100vh;
+        }
+        
+        #archiveView table {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: var(--black);
+        }
+        
+        #archiveView th, #archiveView td {
+            border-color: rgba(0, 0, 0, 0.3);
+        }
+
+        #cassaStoricaContainer {
+            text-align: center;
+            background-color: var(--gold);
+            color: var(--black);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        #cassaStoricaValue {
+            font-size: 2em;
+            font-weight: bold;
+            display: block;
+        }
+        
+        /* Media Queries per Ottimizzazione Mobile */
+        @media (max-width: 600px) {
+            .container {
+                padding: 5px;
+            }
+            input[type="number"], input[type="text"] {
+                font-size: 1em;
+            }
+            th, td {
+                padding: 6px 4px;
+                font-size: 0.75em;
+            }
+            .info-box {
+                padding: 10px;
+            }
+            #saldoRealTimeValue {
+                font-size: 1.5em;
+            }
+            .button-group, .button-group-archive {
+                flex-direction: column;
+                gap: 5px;
+            }
+            button {
+                min-width: 100%;
+            }
+            .header h1 {
+                font-size: 1.5em;
+            }
+            /* Riduce la dimensione della data/ora sul mobile */
+            #archiveTable th:nth-child(1), #archiveTable td:nth-child(1) {
+                font-size: 0.6em;
+            }
+            #archiveTable th:nth-child(2), #archiveTable td:nth-child(2) {
+                font-size: 0.6em;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="header-image-container">
-        <img src="https://raw.githubusercontent.com/mauro8274/Provavegas/81a5c6465ecb5ed1ef903dcc9d2ddeff69d04964/IMG_0628.jpeg" alt="Logo Vegas 7 Numbers">
+    <div id="gameView" class="view container">
+        <div class="header">
+            <img src="https://raw.githubusercontent.com/mauro8274/MANDRAKE/13cdc9b29c08d454e8ac3aee5a65679c15ad97d2/IMG_0648.png" alt="Logo Roulette Tracker" style="max-width: 90%; height: auto; display: block; margin: 0 auto; padding-top: 10px; padding-bottom: 10px;">
+        </div>
+
+        <div class="info-box">
+            <label for="numeroEstratto">NUOVO NUMERO ESTRATTO (0-36):</label>
+            <input type="number" id="numeroEstratto" inputmode="numeric" pattern="[0-9]*" min="0" max="36" placeholder="Inserisci numero" autofocus>
+            
+            <label for="puntataInput">PUNTATA (Valore di 1 Fiche in €):</label>
+            <input type="number" id="puntataInput" min="0.01" step="0.01" value="0.10" placeholder="0.10">
+        </div>
+
+        <div id="saldoRealTimeContainer" class="info-box">
+            <label>SALDO REAL TIME</label>
+            <span id="saldoRealTimeValue">0.00€</span>
+        </div>
+        
+        <div class="button-group">
+            <button id="btnArchivia">Archivia Sessione</button>
+            <button id="btnResetSession">Reset Sessione</button>
+            <button id="btnToArchive">Archivio</button>
+        </div>
+        <div class="info-box">
+            <h3>AREA DATI - Ultimi Numeri Estratti</h3>
+            <table id="dataAreaTable">
+                <thead>
+                    <tr><th colspan="9">ULTIMI 9 NUMERI</th></tr>
+                </thead>
+                <tbody>
+                    <tr id="lastNineNumbersRow"></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="scommessaContainer">
+            <h3>SCOMMESSA (Fattori da Puntare)</h3>
+            <p id="scommessaValue">Inserisci 9 numeri per calcolare...</p>
+        </div>
+
+        <div class="info-box">
+            <h3>LOGICA DI GIOCO (Step di 50 Max)</h3>
+            <table id="bettingTable">
+                <thead>
+                    <tr>
+                        <th>STEP</th>
+                        <th>COLORE</th>
+                        <th>LINEA</th>
+                        <th>DOZZINA</th>
+                        <th>TOT. BET (€)</th>
+                        <th>NETTO EVENTO (€)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
     </div>
 
-    <div class="container">
-        
-        <div id="main-page" class="page-content">
-            
-            <div class="input-area">
-                
-                <div class="input-group">
-                    <label for="numero-estratto">Numero Estratto (0-36):</label>
-                    <input type="number" id="numero-estratto" min="0" max="36" inputmode="numeric" pattern="[0-9]*" placeholder="Inserisci numero" autofocus>
-                    
-                    <label for="valore-unitario">Valore Unitario (€):</label>
-                    <input type="text" id="valore-unitario" placeholder="0,10"> <label>Saldo Real Time:</label>
-                    <div id="saldo-real-time" class="calculated-field">€ 0.00</div>
-                </div>
-
-                <div class="button-group">
-                    <button id="reset-numeri" class="btn btn-red">Reset numeri</button>
-                    <button id="visualizza-archivio" class="btn btn-blue">Visualizza archivio</button>
-                </div>
-                
-                <div class="action-buttons">
-                    <button id="archivia-saldo" class="btn-archive-action">Archivia Saldo Corrente</button>
-                    <button id="richiama-ultimi" class="btn-archive-action" disabled>Richiama Ultimi 10 Numeri</button>
-                </div>
-            </div>
-            
-            <hr>
-
-            <div class="suggested-numbers-area">
-                <h3>I Numeri Suggeriti:</h3>
-                <p id="numeri-suggeriti">Attendendo la Logica...</p>
+    <div id="archiveView" class="view">
+        <div class="container">
+            <div class="header">
+                <h1>📚 Archivio Sessioni</h1>
             </div>
 
-            <hr>
+            <div id="cassaStoricaContainer">
+                <label>CASSA STORICA NETTA</label>
+                <span id="cassaStoricaValue">0.00€</span>
+            </div>
 
-            <div class="progression-section">
-                <h3>PROGRESSIONE PUNTATE</h3>
-                <table class="progression-table">
+            <div class="info-box" style="background-color: transparent;">
+                <table id="archiveTable">
                     <thead>
-                        <tr id="progression-header">
-                            <th>STEP</th>
-                            <th class="header-big">BIG: <span id="big-number">?</span></th>
-                            <th class="header-medio">MEDIO: <span id="medio1-number">?</span></th>
-                            <th class="header-medio">MEDIO: <span id="medio2-number">?</span></th>
-                            <th class="header-mini">MINI: <span id="mini1-number">?</span></th>
-                            <th class="header-mini">MINI: <span id="mini2-number">?</span></th>
-                            <th class="header-mini">MINI: <span id="mini3-number">?</span></th>
-                            <th class="header-mini">MINI: <span id="mini4-number">?</span></th>
+                        <tr>
+                            <th>DATA</th>
+                            <th>ORA</th>
+                            <th>NETTO (€)</th>
+                            <th>INVEST. INIZIALE (€)</th>
+                            <th>STEP CHIUSURA</th>
                         </tr>
                     </thead>
-                    <tbody id="progression-body">
+                    <tbody>
                         </tbody>
                 </table>
-                <button id="reset-progressione" class="reset-progression-btn">RESET PROGRESSIONE</button>
             </div>
 
-            <hr>
-
-            <div class="data-section">
-                
-                <div class="extracted-numbers-container">
-                    <h3>Numeri Estratti</h3>
-                    <table class="extracted-numbers-table">
-                        <thead><tr><th>Numero</th></tr></thead>
-                        <tbody id="lista-estratti"></tbody>
-                    </table>
-                </div>
-
-                <div class="data-table-container">
-                    <h3>TABELLA DATI</h3>
-                    <table class="data-table" id="tabella-dati">
-                        <tbody>
-                            <tr><td>2</td><td>1</td><td>3</td><td>36</td><td>4</td><td>34</td><td>6</td></tr>
-                            <tr><td>5</td><td>4</td><td>6</td><td>1</td><td>9</td><td>3</td><td>7</td></tr>
-                            <tr><td>8</td><td>9</td><td>7</td><td>4</td><td>12</td><td>6</td><td>10</td></tr>
-                            <tr><td>11</td><td>12</td><td>10</td><td>9</td><td>13</td><td>7</td><td>15</td></tr>
-                            <tr><td>14</td><td>13</td><td>15</td><td>12</td><td>16</td><td>10</td><td>18</td></tr>
-                            <tr><td>17</td><td>16</td><td>18</td><td>13</td><td>21</td><td>15</td><td>19</td></tr>
-                            <tr><td>20</td><td>21</td><td>19</td><td>16</td><td>24</td><td>18</td><td>22</td></tr>
-                            <tr><td>23</td><td>24</td><td>22</td><td>21</td><td>25</td><td>19</td><td>27</td></tr>
-                            <tr><td>26</td><td>25</td><td>27</td><td>24</td><td>28</td><td>22</td><td>30</td></tr>
-                            <tr><td>29</td><td>28</td><td>30</td><td>25</td><td>33</td><td>27</td><td>31</td></tr>
-                            <tr><td>32</td><td>33</td><td>31</td><td>28</td><td>36</td><td>30</td><td>34</td></tr>
-                            <tr><td>35</td><td>36</td><td>34</td><td>33</td><td>1</td><td>31</td><td>3</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
+            <div class="button-group-archive">
+                <button id="btnToGameFromArchive">Torna al Gioco</button>
+                <button id="btnResetArchive">Reset Archivio Storico</button>
             </div>
         </div>
-        
-        <div id="stats-page" class="page-content">
-            <h2>📊 Archivio e Statistiche Sessioni</h2>
-            
-            <div class="stats-summary">
-                <table class="stats-table">
-                    <thead>
-                        <tr>
-                            <th>SALDO TOTALE</th>
-                            <th>NUMERO EVENTI</th>
-                            <th>VITTORIE</th>
-                            <th>PERDITE</th>
-                            <th>% VITTORIE</th>
-                        </tr>
-                    </thead>
-                    <tbody id="summary-body">
-                        <tr>
-                            <td id="total-saldo">€ 0.00</td>
-                            <td id="total-events">0</td>
-                            <td id="total-wins">0</td>
-                            <td id="total-losses">0</td>
-                            <td id="win-percentage">0%</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="button-group" style="justify-content: center;">
-                <button id="back-to-main" class="btn btn-blue">Torna alla Pagina Principale</button>
-                <button id="reset-archivio" class="btn btn-red">Reset Archivio Statistiche</button>
-            </div>
-            
-            <div class="stats-sessions">
-                <h3>Dettaglio Sessioni Archiviate</h3>
-                <table class="stats-table">
-                    <thead>
-                        <tr>
-                            <th>Data/Ora</th>
-                            <th>Saldo Registrato</th>
-                            <th>Step Vittoria</th>
-                        </tr>
-                    </thead>
-                    <tbody id="sessions-body">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-        
     </div>
 
     <script>
-        // ===============================================
-        // *** CONFIGURAZIONE JSONBIN.IO ***
-        // ===============================================
-        // AGGIORNA QUESTE CHIAVI CON LE TUE CREDENZIALI REALI
-        const JSONBIN_ACCESS_KEY = '$2a$10$jyfQtGxraAzGJat.A7ksZ.Z4RQ2Tjzx3YvAwd7Ro.seCzFmfE3PyC';
-        const JSONBIN_BIN_ID = '69395cce43b1c97be9e44dcc';
-        const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+        // === DATI E CONFIGURAZIONE GLOBALE ===
 
-        const JSONBIN_HEADERS = {
-            'X-ACCESS-KEY': JSONBIN_ACCESS_KEY,
-            'Content-Type': 'application/json',
+        // Configurazione per jsonbin.io
+        // *** IMPORTANTE: PER FAR FUNZIONARE L'ARCHIVIO DEVI INSERIRE LA TUA CHIAVE REALE AL POSTO DI QUELLA SEGNAPOSTO ***
+        const JSON_BIN_ID = '693c2d5343b1c97be9e984aa'; 
+        // Chiave segnaposto. Se l'archiviazione non funziona, sostituiscila con la tua chiave jsonbin.io.
+        const API_KEY = '$2a$10$ayP59Hfi7LkT35rikrQPk.p7vm9HN/Cko1Nwr2I0HrZyu0/1BVMLe'; 
+        const API_URL = `https://api.jsonbin.io/v3/b/${JSON_BIN_ID}`;
+
+        // Mappatura Roulette
+        const ROULETTE_MAP = {
+            // Colore (Rosso/Nero)
+            'RED': [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36],
+            'BLACK': [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35],
+            // Dozzine
+            'D1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+            'D2': [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+            'D3': [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36],
+            // Righe (Colonne)
+            'L1': [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34], 
+            'L2': [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35], 
+            'L3': [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36]  
+        };
+        const MAX_STEPS = 50;
+        const ANALYSIS_COUNT = 9;
+
+        // Stato di sessione
+        let sessionData = {
+            extractedNumbers: [],
+            currentStep: 0,
+            betFactors: { color: '', line: '', dozen: '' }, // Fattori consigliati per la puntata
+            betHistory: [], // Array di 50 oggetti per la tabella
+            saldoRealTime: 0.00
         };
 
-        // ===============================================
-        // VARIABILI GLOBALI e STRUTTURE DATI
-        // ===============================================
-        const inputEstratto = document.getElementById('numero-estratto');
-        const valoreUnitarioInput = document.getElementById('valore-unitario');
-        const listaEstratti = document.getElementById('lista-estratti');
-        const saldoRealTime = document.getElementById('saldo-real-time');
-        const btnResetNumeri = document.getElementById('reset-numeri');
-        const btnResetProgressione = document.getElementById('reset-progressione');
-        const btnArchiviaSaldo = document.getElementById('archivia-saldo');
-        const btnVisualizzaArchivio = document.getElementById('visualizza-archivio');
-        const btnRichiamaUltimi = document.getElementById('richiama-ultimi'); 
-        
-        const mainPage = document.getElementById('main-page');
-        const statsPage = document.getElementById('stats-page');
-        const progressionBody = document.getElementById('progression-body');
-        const tabellaDatiElemento = document.getElementById('tabella-dati');
-        const suggestedNumbersElement = document.getElementById('numeri-suggeriti');
-        const righeTabella = tabellaDatiElemento.querySelectorAll('tbody tr');
-        
-        
-        const TABELLA_DATI = [
-            [2, 1, 3, 36, 4, 34, 6], [5, 4, 6, 1, 9, 3, 7], [8, 9, 7, 4, 12, 6, 10],
-            [11, 12, 10, 9, 13, 7, 15], [14, 13, 15, 12, 16, 10, 18], [17, 16, 18, 13, 21, 15, 19],
-            [20, 21, 19, 16, 24, 18, 22], [23, 24, 22, 21, 25, 19, 27], [26, 25, 27, 24, 28, 22, 30],
-            [29, 28, 30, 25, 33, 27, 31], [32, 33, 31, 28, 36, 30, 34], [35, 36, 34, 33, 1, 31, 3]
-        ];
-        const MEDI_PER_RIGA = {
-            0: [1, 3], 1: [4, 6], 2: [9, 7], 3: [12, 10], 4: [13, 15], 5: [16, 18], 
-            6: [21, 19], 7: [24, 22], 8: [25, 27], 9: [28, 30], 10: [33, 31], 11: [36, 34]
-        };
+        // --- Elementi DOM ---
+        const gameView = document.getElementById('gameView');
+        const archiveView = document.getElementById('archiveView');
+        const numeroEstrattoInput = document.getElementById('numeroEstratto');
+        const puntataInput = document.getElementById('puntataInput');
+        const saldoRealTimeValue = document.getElementById('saldoRealTimeValue');
+        const scommessaValue = document.getElementById('scommessaValue');
+        const scommessaContainer = document.getElementById('scommessaContainer');
+        const dataAreaTable = document.getElementById('lastNineNumbersRow');
+        const bettingTableBody = document.querySelector('#bettingTable tbody');
+        const cassaStoricaValue = document.getElementById('cassaStoricaValue');
+        const archiveTableBody = document.querySelector('#archiveTable tbody');
 
-        const PROGRESSION_MULTIPLIERS = [
-            { BIG: 4, MEDI: 2, MINI: 1 }, { BIG: 4, MEDI: 2, MINI: 1 }, { BIG: 4, MEDI: 2, MINI: 1 },
-            { BIG: 6, MEDI: 4, MINI: 1 }, { BIG: 6, MEDI: 4, MINI: 2 }, { BIG: 10, MEDI: 8, MINI: 4 },
-            { BIG: 8, MEDI: 4, MINI: 0 }, { BIG: 8, MEDI: 5, MINI: 0 }, 
-            { BIG: 10, MEDI: 5, MINI: 0 }, { BIG: 10, MEDI: 6, MINI: 0 }, 
-            { BIG: 12, MEDI: 8, MINI: 0 }, { BIG: 12, MEDI: 8, MINI: 0 },
-            { BIG: 8, MEDI: 8, MINI: 0 }, { BIG: 9, MEDI: 9, MINI: 0 }, 
-            { BIG: 10, MEDI: 10, MINI: 0 }, { BIG: 11, MEDI: 11, MINI: 0 }, 
-            { BIG: 12, MEDI: 12, MINI: 0 }, { BIG: 12, MEDI: 12, MINI: 0 },
-            { BIG: 13, MEDI: 13, MINI: 0 }, { BIG: 15, MEDI: 15, MINI: 0 } 
-        ];
+        // === FUNZIONI DI UTILITY ===
 
-        // STATO GLOBALE PAGINA PRINCIPALE
-        let numeriEstratti = [];
-        let righeBruciate = new Array(12).fill(false);
-        let mediUscitiPerRiga = new Array(12).fill(0).map(() => new Set()); 
-        let isBettingPhase = false; 
-        let suggestedNumbers = null; 
-        let currentStep = 0; 
-        let currentSaldo = 0; 
-        let winStepForArchive = null; 
-        
-        // STATO GLOBALE ARCHIVIO (Caricato da remoto)
-        let sessionArchives = []; 
+        /** Formatta un numero come valuta */
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(amount);
+        }
 
+        /** Converte una stringa Data/Ora (locale) in oggetto Date. */
+        function parseDateTime(dateTimeString) {
+            // Supponiamo che la stringa sia in formato 'gg/mm/aaaa hh:mm:ss'
+            if (!dateTimeString) return new Date(NaN);
+            
+            const parts = dateTimeString.split(' ');
+            if (parts.length < 2) return new Date(dateTimeString); 
+            
+            const dateParts = parts[0].split('/');
+            const timeParts = parts[1].split(':');
+            
+            if (dateParts.length !== 3 || timeParts.length < 2) return new Date(dateTimeString);
 
-        // ===============================================
-        // *** FUNZIONI DI GESTIONE JSONBIN.IO (API) ***
-        // ===============================================
+            // Costruisce l'oggetto Date (Anno, Mese-1, Giorno, Ore, Minuti, Secondi)
+            const y = parseInt(dateParts[2], 10);
+            const m = parseInt(dateParts[1], 10) - 1;
+            const d = parseInt(dateParts[0], 10);
+            const h = parseInt(timeParts[0], 10);
+            const min = parseInt(timeParts[1], 10);
+            const s = parseInt(timeParts[2] || 0, 10); // Secondi opzionali
 
-        /**
-         * Recupera l'archivio delle sessioni da jsonbin.io.
-         * Formato array alla radice ([...]).
-         * @returns {Array} L'array delle sessioni archiviate o un array vuoto.
-         */
-        async function fetchArchivesFromRemote() {
-            try {
-                const response = await fetch(JSONBIN_URL, {
-                    method: 'GET',
-                    headers: {
-                        'X-ACCESS-KEY': JSONBIN_ACCESS_KEY
-                    }
+            return new Date(y, m, d, h, min, s);
+        }
+
+        /** Funzione per creare le righe iniziali della tabella scommesse */
+        function createInitialBettingTable() {
+            bettingTableBody.innerHTML = '';
+            sessionData.betHistory = [];
+            for (let i = 1; i <= MAX_STEPS; i++) {
+                const row = bettingTableBody.insertRow();
+                row.id = `stepRow-${i}`;
+                row.innerHTML = `
+                    <td>${i}</td>
+                    <td data-col="color">0.00€</td>
+                    <td data-col="line">0.00€</td>
+                    <td data-col="dozen">0.00€</td>
+                    <td data-col="totBet">0.00€</td>
+                    <td data-col="nettoEvento">0.00€</td>
+                `;
+                sessionData.betHistory.push({
+                    step: i,
+                    colorBet: 0.00,
+                    lineBet: 0.00,
+                    dozenBet: 0.00,
+                    totalBet: 0.00,
+                    nettoEvento: 0.00,
+                    isPlayed: false // Indica se la riga è stata giocata
                 });
-
-                if (!response.ok) {
-                    if (response.status === 404) return []; 
-                    throw new Error(`Errore HTTP nel recupero: ${response.status}`);
-                }
-
-                const result = await response.json();
-        
-                // Ci aspettiamo che 'result' sia direttamente l'array
-                if (Array.isArray(result)) {
-                    console.log("Dati estratti: array di", result.length, "sessioni."); 
-                    return result;
-                } 
-                // Logica di backup nel caso JSONBin restituisca un wrapper
-                else if (result && Array.isArray(result.record)) {
-                     console.log("Dati estratti dal record: array di", result.record.length, "sessioni."); 
-                     return result.record;
-                }
-                else {
-                    console.warn('Risposta remota non è un array valido. Restituito array vuoto.', result);
-                    return []; 
-                }
-
-            } catch (error) {
-                console.error('Errore durante il recupero remoto dell\'archivio:', error); 
-                alert('ATTENZIONE: Errore nel caricamento dell\'archivio remoto. Verrà mostrato un archivio vuoto.');     
-                return []; 
             }
         }
 
-        /**
-         * Salva (sovrascrive) l'intero archivio delle sessioni su jsonbin.io.
-         * Formato array alla radice ([...]).
-         * Corretto: evita di parsare la risposta JSON per prevenire errori sul PUT.
-         * @param {Array} archives - L'array completo da salvare.
-         */
-        async function saveArchivesToRemote(archives) {
-            try {
-                // Invia direttamente l'array come payload
-                const payload = JSON.stringify(archives); 
-                console.log('Invio payload a JSONBin (dimensione):', payload.length); 
-
-                const response = await fetch(JSONBIN_URL, {
-                    method: 'PUT', // PUT sovrascrive il contenuto
-                    headers: JSONBIN_HEADERS,
-                    body: payload 
-                });
-
-                if (!response.ok) {
-                    const errorDetail = await response.text();
-                    throw new Error(`Errore HTTP nel salvataggio: ${response.status}. Dettagli: ${errorDetail}`);
-                }
-
-                // FIX: Rimuoviamo la chiamata a response.json() che causava l'errore
-                // quando il server risponde con successo ma con un corpo vuoto/non-JSON.
-                console.log('Archivio salvato con successo su jsonbin.io.');
+        /** Aggiorna la riga dei numeri estratti */
+        function updateDataAreaTable() {
+            dataAreaTable.innerHTML = '';
+            // Visualizza solo gli ultimi 9
+            const lastNine = sessionData.extractedNumbers.slice(-ANALYSIS_COUNT); 
+            
+            for (let i = 0; i < ANALYSIS_COUNT; i++) {
+                const number = lastNine[i] !== undefined ? lastNine[i] : '-';
+                const cell = dataAreaTable.insertCell();
+                cell.textContent = number;
                 
-                return true;
-
-            } catch (error) {
-                console.error('Errore durante il salvataggio remoto dell\'archivio:', error);
-                alert('ERRORE CRITICO: Impossibile salvare l\'archivio su jsonbin.io. I dati non saranno persistenti.');
-                return false;
+                // Colora la cella con contrasto leggibile
+                let bgColor = 'transparent';
+                let textColor = 'var(--white)';
+                if (number === '-') {
+                    bgColor = 'transparent';
+                    textColor = 'var(--white)';
+                } else if (number === 0) {
+                    bgColor = 'var(--green-light)';
+                    textColor = 'var(--black)';
+                } else if (ROULETTE_MAP.RED.includes(number)) {
+                    bgColor = 'var(--red)';
+                    textColor = 'var(--white)';
+                } else if (ROULETTE_MAP.BLACK.includes(number)) {
+                    bgColor = 'var(--black)';
+                    textColor = 'var(--white)';
+                } else {
+                    bgColor = 'transparent';
+                    textColor = 'var(--white)';
+                }
+                cell.style.backgroundColor = bgColor;
+                cell.style.color = textColor;
             }
         }
-        
-        /**
-         * Funzione per archiviare la sessione corrente in modo remoto e resettare lo stato.
-         */
-        async function archiveCurrentSession(isWin, winStep = null) {
-            const newArchive = {
-                timestamp: new Date().toLocaleString('it-IT'),
-                saldo: currentSaldo, 
-                winStep: isWin ? winStep : null
+
+        /** Resetta lo stato del gioco */
+        function resetSession() {
+            sessionData.extractedNumbers = [];
+            sessionData.currentStep = 0;
+            sessionData.betFactors = { color: '', line: '', dozen: '' };
+            sessionData.saldoRealTime = 0.00;
+
+            puntataInput.value = "0.10";
+            numeroEstrattoInput.value = '';
+            saldoRealTimeValue.textContent = formatCurrency(0.00);
+            saldoRealTimeValue.style.color = 'var(--red)';
+            scommessaValue.textContent = 'Inserisci 9 numeri per calcolare...';
+            scommessaContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+            scommessaContainer.style.color = 'var(--black)';
+
+            createInitialBettingTable();
+            updateDataAreaTable();
+            numeroEstrattoInput.focus();
+        }
+
+        // === LOGICA DI CALCOLO STRATEGIA ===
+
+        /** Calcola i fattori di scommessa analizzando gli ultimi 9 numeri */
+        function calculateBetFactors() {
+            const numbers = sessionData.extractedNumbers.slice(-ANALYSIS_COUNT);
+            if (numbers.length < ANALYSIS_COUNT) return;
+
+            const counts = {
+                'RED': 0, 'BLACK': 0,
+                'L1': 0, 'L2': 0, 'L3': 0,
+                'D1': 0, 'D2': 0, 'D3': 0
             };
 
-            // 1. Recupera l'archivio remoto corrente
-            let currentArchives = await fetchArchivesFromRemote();
-            
-            // 2. Aggiunge la nuova sessione
-            currentArchives.push(newArchive);
-            
-            // 3. Salva l'archivio aggiornato su jsonbin.io
-            const success = await saveArchivesToRemote(currentArchives);
+            numbers.forEach(num => {
+                if (num === 0) return; // Lo zero non influenza i fattori
 
-            if (success) {
-                sessionArchives = currentArchives; // Aggiorna lo stato locale dopo il salvataggio remoto
-                alert(`Sessione archiviata con successo! Saldo: ${formatCurrency(currentSaldo)}.`);
-            }
-            
-            saveLastExtractedNumbers(); 
-            resetAllMainData(); 
+                // Colore
+                if (ROULETTE_MAP.RED.includes(num)) counts.RED++;
+                if (ROULETTE_MAP.BLACK.includes(num)) counts.BLACK++;
 
-            inputEstratto.disabled = false;
-        }
+                // Righe
+                if (ROULETTE_MAP.L1.includes(num)) counts.L1++;
+                else if (ROULETTE_MAP.L2.includes(num)) counts.L2++;
+                else if (ROULETTE_MAP.L3.includes(num)) counts.L3++;
 
-        // ===============================================
-        // GESTIONE ARCHIVIO LOCAL (SOLO NUMERI ESTRATTI)
-        // ===============================================
-
-        function loadLastExtractedNumbers() {
-            const data = localStorage.getItem('vegas7_last_10_numbers');
-            return data ? JSON.parse(data) : [];
-        }
-        function saveLastExtractedNumbers() {
-            const last10 = numeriEstratti.slice(0, 10);
-            localStorage.setItem('vegas7_last_10_numbers', JSON.stringify(last10));
-        }
-
-        // ===============================================
-        // LOGICA PAGINA ARCHIVIO
-        // ===============================================
-
-        function updateStatsTables() {
-            let totalSaldo = 0;
-            let totalEvents = sessionArchives.length;
-            let totalWins = 0;
-            let totalLosses = 0;
-            
-            const sessionsBody = document.getElementById('sessions-body');
-            sessionsBody.innerHTML = '';
-
-            sessionArchives.forEach(entry => {
-                const saldoValue = Number(entry.saldo); 
-                
-                if (!isNaN(saldoValue)) {
-                    totalSaldo += saldoValue;
-                }
-
-                if (entry.winStep) { 
-                    totalWins++; 
-                } else { 
-                    if (saldoValue < 0) {
-                         totalLosses++; 
-                    }
-                }
-
-                const riga = sessionsBody.insertRow();
-                const saldoClass = saldoValue >= 0 ? 'positive-saldo' : 'negative-saldo';
-                const winStepText = entry.winStep ? `Vittoria @ Step ${entry.winStep}` : (saldoValue < 0 ? 'PERDITA' : 'Reset neutrale');
-                
-                riga.innerHTML = `
-                    <td>${entry.timestamp}</td>
-                    <td class="${saldoClass}">${formatCurrency(saldoValue)}</td>
-                    <td>${winStepText}</td>
-                `;
+                // Dozzine
+                if (ROULETTE_MAP.D1.includes(num)) counts.D1++;
+                else if (ROULETTE_MAP.D2.includes(num)) counts.D2++;
+                else if (ROULETTE_MAP.D3.includes(num)) counts.D3++;
             });
-            
-            let winPercentage = 0;
-            if (totalEvents > 0) {
-                winPercentage = ((totalWins / totalEvents) * 100).toFixed(1); 
-            }
 
-            const totalSaldoCell = document.getElementById('total-saldo');
-            
-            totalSaldoCell.textContent = formatCurrency(totalSaldo);
-            totalSaldoCell.classList.remove('positive-saldo', 'negative-saldo');
-            if (totalSaldo > 0) totalSaldoCell.classList.add('positive-saldo');
-            if (totalSaldo < 0) totalSaldoCell.classList.add('negative-saldo');
-            
-            document.getElementById('total-events').textContent = totalEvents;
-            document.getElementById('total-wins').textContent = totalWins;
-            document.getElementById('total-losses').textContent = totalLosses;
-            document.getElementById('win-percentage').textContent = `${winPercentage}%`;
-        }
-        
-        async function updateArchivePage() {
-            const fetchedArchives = await fetchArchivesFromRemote(); 
+            // 1. Logica Colore (Punta quello uscito meno)
+            sessionData.betFactors.color = counts.RED < counts.BLACK ? 'RED' : 
+                                            counts.BLACK < counts.RED ? 'BLACK' : 
+                                            'N/A';
 
-            if (Array.isArray(fetchedArchives)) {
-                sessionArchives = fetchedArchives;
+            // 2. Logica Riga (Punta quello uscito meno, MAI L1)
+            let lineCounts = { 'L2': counts.L2, 'L3': counts.L3 };
+            if (lineCounts.L2 < lineCounts.L3) {
+                sessionData.betFactors.line = 'L2';
+            } else if (lineCounts.L3 < lineCounts.L2) {
+                sessionData.betFactors.line = 'L3';
             } else {
-                sessionArchives = [];
+                sessionData.betFactors.line = 'L2'; 
             }
             
-            updateStatsTables(); 
-            checkRichiamaUltimiButtonState();
-        }
-
-        async function resetStatsArchive() {
-            const confirmReset = confirm("Sei sicuro di voler ELIMINARE PERMANENTEMENTE TUTTO l'archivio delle statistiche? Questa azione è irreversibile e cancellerà i dati su jsonbin.io.");
-            if (confirmReset) {
-                // Passa un array vuoto [] come richiesto per sovrascrivere il bin
-                const success = await saveArchivesToRemote([]); 
-                if (success) {
-                    // Cancella anche i numeri estratti locali per coerenza
-                    localStorage.removeItem('vegas7_last_10_numbers'); 
-                    alert('Archivio statistiche eliminato con successo!');
-                    // Aggiorna la pagina Statistiche subito dopo il reset per mostrare l'archivio vuoto
-                    updateArchivePage();
-                }
-            }
-        }
-        
-        async function displayStatsPage() {
-            await updateArchivePage();
-            
-            document.getElementById('back-to-main').addEventListener('click', () => { 
-                statsPage.style.display = 'none';
-                mainPage.style.display = 'block';
-                inputEstratto.focus();
-                checkRichiamaUltimiButtonState(); 
-            });
-            document.getElementById('reset-archivio').addEventListener('click', resetStatsArchive);
-
-            mainPage.style.display = 'none';
-            statsPage.style.display = 'block';
-        }
-
-
-        // ===============================================
-        // FUNZIONI UTILITY E DI GIOCO 
-        // ===============================================
-        const formatCurrency = (value) => `€ ${value.toFixed(2).replace('.', ',')}`;
-        
-        function getUnitValue() {
-             const value = valoreUnitarioInput.value.replace(',', '.');
-             return parseFloat(value) || 0;
-        }
-
-        function calculateStake(step, unitValue) {
-            if (step < 1 || step > 20) return null;
-            const mult = PROGRESSION_MULTIPLIERS[step - 1];
-            const bigBet = mult.BIG * unitValue;
-            const medioBet = mult.MEDI * unitValue;
-            const miniBet = mult.MINI * unitValue;
-            const totalStake = bigBet + (2 * medioBet) + (4 * miniBet);
-            return { bigBet, medioBet, miniBet, totalStake };
-        }
-
-        function initializeProgressionTable() {
-            progressionBody.innerHTML = '';
-            const unitValue = getUnitValue() || 0.10; 
-            if (!valoreUnitarioInput.value || getUnitValue() <= 0) {
-                 valoreUnitarioInput.value = unitValue.toFixed(2).replace('.', ',');
-            }
-            
-            PROGRESSION_MULTIPLIERS.forEach((mult, index) => {
-                const step = index + 1;
-                const riga = progressionBody.insertRow();
-                riga.id = `step-row-${step}`;
-                
-                const bigBet = mult.BIG * unitValue;
-                const medioBet = mult.MEDI * unitValue;
-                const miniBet = mult.MINI * unitValue;
-
-                riga.innerHTML = `
-                    <td>STEP ${step}</td>
-                    <td>${formatCurrency(bigBet)}</td>
-                    <td>${formatCurrency(medioBet)}</td>
-                    <td>${formatCurrency(medioBet)}</td>
-                    <td>${formatCurrency(miniBet)}</td>
-                    <td>${formatCurrency(miniBet)}</td>
-                    <td>${formatCurrency(miniBet)}</td>
-                    <td>${formatCurrency(miniBet)}</td>
-                `;
-            });
-            if (currentStep > 0) { highlightStep(currentStep); }
-        }
-        
-        function highlightStep(newStep) {
-            if (currentStep >= 1 && currentStep <= 20) {
-                const prevRow = document.getElementById(`step-row-${currentStep}`);
-                if (prevRow) prevRow.classList.remove('active-step');
-            }
-            
-            if (newStep >= 1 && newStep <= 20) {
-                const newRow = document.getElementById(`step-row-${newStep}`);
-                if (newRow) newRow.classList.add('active-step');
-            }
-            currentStep = newStep;
-        }
-
-        function updateProgressionHeader(numbers) {
-            document.getElementById('big-number').textContent = numbers[0] || '?';
-            document.getElementById('medio1-number').textContent = numbers[1] || '?';
-            document.getElementById('medio2-number').textContent = numbers[2] || '?';
-            const miniDisplay = (isBettingPhase && currentStep >= 7) ? '—' : (numbers[3] || '?');
-            document.getElementById('mini1-number').textContent = miniDisplay;
-            document.getElementById('mini2-number').textContent = miniDisplay;
-            document.getElementById('mini3-number').textContent = miniDisplay;
-            document.getElementById('mini4-number').textContent = miniDisplay;
-        }
-        
-        function updateEstrattiList() {
-            listaEstratti.innerHTML = ''; 
-            const maxDisplay = 30; 
-            numeriEstratti.slice(0, maxDisplay).forEach(numero => {
-                const row = listaEstratti.insertRow();
-                const cell = row.insertCell();
-                cell.textContent = numero;
-            });
-        }
-        
-        function updateSuggestedNumbers(numbers) {
-            if (numbers && numbers.length > 0) {
-                let numbersToDisplay = [...numbers];
-                if (isBettingPhase && currentStep >= 7) {
-                    numbersToDisplay = [numbers[0], numbers[1], numbers[2]];
-                }
-                suggestedNumbersElement.innerHTML = `<strong>${numbersToDisplay.join(', ')}</strong>`;
+            // 3. Logica Dozzina (Punta quello uscito meno, MAI D2)
+            let dozenCounts = { 'D1': counts.D1, 'D3': counts.D3 };
+            if (dozenCounts.D1 < dozenCounts.D3) {
+                sessionData.betFactors.dozen = 'D1';
+            } else if (dozenCounts.D3 < dozenCounts.D1) {
+                sessionData.betFactors.dozen = 'D3';
             } else {
-                suggestedNumbersElement.textContent = 'Attendendo la Logica...';
+                sessionData.betFactors.dozen = 'D1';
             }
+            
+            // Aggiorna l'interfaccia con i fattori di scommessa
+            updateScommessaUI();
+        }
+        
+        /** Mostra un pop-up di notifica con i fattori di scommessa */
+        function notifyBetFactors() {
+            const factors = sessionData.betFactors;
+            const puntata = parseFloat(puntataInput.value) || 0.10;
+            const betAmount = sessionData.betHistory[sessionData.currentStep].colorBet || puntata; // Usa l'importo calcolato per lo step 1
+            
+            let displayColor = factors.color === 'RED' ? 'ROSSO' : factors.color === 'BLACK' ? 'NERO' : 'Non definito';
+            let displayLine = factors.line === 'L2' ? 'LINEA 2 (2-35)' : factors.line === 'L3' ? 'LINEA 3 (3-36)' : 'Non definito';
+            let displayDozen = factors.dozen === 'D1' ? 'DOZZINA 1 (1-12)' : factors.dozen === 'D3' ? 'DOZZINA 3 (25-36)' : 'Non definito';
+
+            let message = `🔔 INIZIO STRATEGIA 🔔\n\n`;
+            message += `Puntata per fattore: ${formatCurrency(puntata)}\n`;
+            message += `Totale Puntata Step 1: ${formatCurrency(puntata * 3)}\n\n`;
+            message += `Fattore COLORE: ${displayColor}\n`;
+            message += `Fattore LINEA: ${displayLine}\n`;
+            message += `Fattore DOZZINA: ${displayDozen}\n\n`;
+            message += `Inserisci il prossimo numero estratto per procedere.`;
+            
+            alert(message);
         }
 
-        function checkIfRowBruciata(rigaIndex, numeroEstratto) {
-            if (righeBruciate[rigaIndex]) return; 
-            const datiRiga = TABELLA_DATI[rigaIndex];
-            if (datiRiga[0] === numeroEstratto) {
-                righeBruciate[rigaIndex] = true;
-                righeTabella[rigaIndex].classList.add('riga-bruciata');
+        /** Aggiorna l'interfaccia con i fattori di scommessa calcolati */
+        function updateScommessaUI() {
+            const factors = sessionData.betFactors;
+            let displayColor = factors.color === 'RED' ? 'ROSSO' : factors.color === 'BLACK' ? 'NERO' : 'Non definito';
+            let displayLine = factors.line === 'L2' ? 'LINEA 2 (2-35)' : factors.line === 'L3' ? 'LINEA 3 (3-36)' : 'Non definito';
+            let displayDozen = factors.dozen === 'D1' ? 'DOZZINA 1 (1-12)' : factors.dozen === 'D3' ? 'DOZZINA 3 (25-36)' : 'Non definito';
+
+            scommessaValue.innerHTML = `
+                <span style="color: ${factors.color === 'RED' ? 'red' : factors.color === 'BLACK' ? 'black' : 'gray'}; background-color: ${factors.color === 'BLACK' ? 'white' : 'transparent'}; padding: 2px 5px; border-radius: 3px;">${displayColor}</span><br>
+                ${displayLine}<br>
+                ${displayDozen}
+            `;
+            scommessaContainer.style.backgroundColor = 'var(--gold)';
+            scommessaContainer.style.color = 'var(--black)'; 
+        }
+
+        // === LOGICA DI GIOCO E AGGIORNAMENTO TABELLA ===
+
+        /** Esegue l'analisi del numero estratto e aggiorna lo stato */
+        function processExtraction(extractedNumber) {
+            const currentStep = sessionData.currentStep;
+            const bet = sessionData.betHistory[currentStep - 1];
+            const puntataSingola = parseFloat(puntataInput.value);
+
+            if (!bet || !bet.isPlayed) {
+                console.error("Errore: Nessuna puntata attiva da processare. currentStep:", currentStep, "bet:", bet);
                 return;
             }
-            const numeriMedi = MEDI_PER_RIGA[rigaIndex];
-            if (numeriMedi.includes(numeroEstratto)) {
-                mediUscitiPerRiga[rigaIndex].add(numeroEstratto);
-                if (mediUscitiPerRiga[rigaIndex].size === 2) {
-                    righeBruciate[rigaIndex] = true;
-                    righeTabella[rigaIndex].classList.add('riga-bruciata');
-                }
-            }
-        }
-        
-        function updateSaldoLoss() {
-             const unitValue = getUnitValue(); 
-             const currentStake = calculateStake(currentStep, unitValue);
 
-             if (currentStake) {
-                currentSaldo -= currentStake.totalStake;
-                saldoRealTime.textContent = formatCurrency(currentSaldo);
-             }
-        }
-        
-        function triggerBettingPhase(rigaIndex, rigaDati) {
-            const unitValue = getUnitValue();
-            if (unitValue <= 0) {
-                 alert('ATTENZIONE: Inserisci prima un "Valore Unitario €" valido per iniziare la progressione.');
-                 isBettingPhase = false;
-                 suggestedNumbers = null;
-                 return;
-            }
+            let winnings = 0;
+            let hits = 0; // Contatore di fattori indovinati
+            const betAmount = bet.colorBet; // La puntata è uguale per tutti e 3 i fattori
 
-            isBettingPhase = true;
-            suggestedNumbers = rigaDati;
-            
-            updateProgressionHeader(rigaDati); 
-            updateSuggestedNumbers(rigaDati);
-            
-            highlightStep(1);
-            updateSaldoLoss(); // PRIMA perdita (Step 1)
-            
-            const numeri = rigaDati.join(', ');
-            alert(`CI SIAMO! I 7 numeri da giocare sono: ${numeri}`);
-            
-            checkRichiamaUltimiButtonState(); 
-        }
+            // 1. Controllo Colore (paga 1:1)
+            if (bet.colorBet > 0) {
+                const isRed = ROULETTE_MAP.RED.includes(extractedNumber);
+                const isBlack = ROULETTE_MAP.BLACK.includes(extractedNumber);
 
-        function processBettingPhase(numeroEstratto) {
-            const unitValue = getUnitValue();
-            const currentStake = calculateStake(currentStep, unitValue);
-            
-            if (!currentStake) return;
-
-            let isWin = false;
-            let winIndex = -1;
-            
-            let checkNumbers = suggestedNumbers;
-            if (currentStep >= 7) {
-                checkNumbers = suggestedNumbers.slice(0, 3);
-            }
-            
-            if (checkNumbers.includes(numeroEstratto)) {
-                 isWin = true;
-                 winIndex = suggestedNumbers.indexOf(numeroEstratto);
-            }
-
-            if (isWin) {
-                let betOnWinNumber = 0;
-                
-                if (winIndex === 0) { 
-                    betOnWinNumber = currentStake.bigBet;
-                } else if (winIndex === 1 || winIndex === 2) { 
-                    betOnWinNumber = currentStake.medioBet;
-                } else if (winIndex >= 3 && currentStep <= 6) { 
-                    betOnWinNumber = currentStake.miniBet;
-                } 
-                
-                const winLord = betOnWinNumber * 36;
-                currentSaldo += winLord;
-                
-                saldoRealTime.textContent = formatCurrency(currentSaldo);
-                winStepForArchive = currentStep; 
-                
-                alert(`HAI VINTO ${formatCurrency(winLord)}! Il saldo Real Time aggiornato è ${formatCurrency(currentSaldo)}. Archivia la sessione.`);
-                
-                inputEstratto.disabled = true; 
-
-            } else {
-                if (currentStep < 20) {
-                    currentStep++;
-                    highlightStep(currentStep);
-                    updateSaldoLoss(); 
-                    
-                    updateSuggestedNumbers(suggestedNumbers); 
-                    updateProgressionHeader(suggestedNumbers || []); 
-
+                if (extractedNumber !== 0 && (
+                    (sessionData.betFactors.color === 'RED' && isRed) ||
+                    (sessionData.betFactors.color === 'BLACK' && isBlack)
+                )) {
+                    winnings += betAmount * 2; // Ritorno (puntata + vincita)
+                    hits++;
                 } else {
-                    alert("Progressione terminata all'ultimo Step (20). Resetta per iniziare una nuova giocata.");
-                    resetProgressionState();
+                    winnings += 0; // Perde la puntata
                 }
             }
-            checkRichiamaUltimiButtonState();
+
+            // 2. Controllo Riga/Linea (paga 2:1)
+            if (bet.lineBet > 0) {
+                const lineMap = ROULETTE_MAP[sessionData.betFactors.line];
+                if (extractedNumber !== 0 && lineMap && lineMap.includes(extractedNumber)) {
+                    winnings += betAmount * 3; // Ritorno (puntata + 2*vincita)
+                    hits++;
+                } else {
+                    winnings += 0;
+                }
+            }
+
+            // 3. Controllo Dozzina (paga 2:1)
+            if (bet.dozenBet > 0) {
+                const dozenMap = ROULETTE_MAP[sessionData.betFactors.dozen];
+                if (extractedNumber !== 0 && dozenMap && dozenMap.includes(extractedNumber)) {
+                    winnings += betAmount * 3; // Ritorno (puntata + 2*vincita)
+                    hits++;
+                } else {
+                    winnings += 0;
+                }
+            }
+
+            // Calcolo NETTO EVENTO e SALDO REAL TIME
+            const totalBetInRow = bet.totalBet;
+            const nettoEvento = winnings - totalBetInRow;
+            
+            bet.nettoEvento = nettoEvento;
+            sessionData.saldoRealTime = (sessionData.saldoRealTime + nettoEvento);
+
+            updateBettingTableUI(currentStep); // Aggiorna la riga corrente
+            updateSaldoRealTimeUI();
+
+            // Logica di STOP e Prossimo step
+            let nextStep = currentStep + 1;
+
+            // Il gioco FINISCE (e viene mostrato il pop-up) solo se il Saldo è STRETTAMENTE POSITIVO (> 0)
+            if (sessionData.saldoRealTime > 0) {
+                showWinPopup(sessionData.saldoRealTime);
+                return; // Ferma ogni altra logica
+            }
+
+            // Calcolo importo prossima puntata (nextBetAmount)
+            let nextBetAmount;
+            if (hits === 0) {
+                // Sconfitta: incrementa la singola puntata su ciascun fattore di una fiche
+                nextBetAmount = bet.colorBet + puntataSingola;
+            } else {
+                // Vittoria (almeno un hit): la puntata per il prossimo step rimane invariata.
+                nextBetAmount = bet.colorBet; // Mantieni l'importo della puntata precedente
+            }
+
+            // Progression check: Continua SOLO SE il saldo NON è strettamente positivo (saldo <= 0)
+            if (sessionData.saldoRealTime <= 0 && nextStep <= MAX_STEPS) { 
+                setupNextStep(nextStep, nextBetAmount);
+            }
+            
+            // Check max steps
+            // L'alert viene mostrato solo se siamo in perdita (saldo < 0) e abbiamo superato gli step massimi.
+            if (nextStep > MAX_STEPS && sessionData.saldoRealTime < 0) {
+                alert("Raggiunto il limite massimo di 50 step. Sessione terminata in perdita. Archivia e resetta.");
+            }
+        }
+
+        /** Prepara l'interfaccia per la prossima scommessa */
+        function setupNextStep(step, betAmount) {
+            if (step > MAX_STEPS) return;
+
+            sessionData.currentStep = step;
+            const nextBet = sessionData.betHistory[step - 1];
+            const row = document.getElementById(`stepRow-${step}`);
+
+            // Imposta i valori di puntata
+            nextBet.colorBet = betAmount;
+            nextBet.lineBet = betAmount;
+            nextBet.dozenBet = betAmount;
+            nextBet.totalBet = parseFloat((betAmount * 3).toFixed(2));
+            nextBet.isPlayed = true;
+
+            // Aggiorna la UI della nuova riga
+            row.classList.add('highlighted-row');
+            row.querySelector('td[data-col="color"]').textContent = formatCurrency(nextBet.colorBet);
+            row.querySelector('td[data-col="line"]').textContent = formatCurrency(nextBet.lineBet);
+            row.querySelector('td[data-col="dozen"]').textContent = formatCurrency(nextBet.dozenBet);
+            row.querySelector('td[data-col="totBet"]').textContent = formatCurrency(nextBet.totalBet);
+
+            // Rimuovi l'evidenziazione dalla riga precedente
+            const prevRow = document.getElementById(`stepRow-${step - 1}`);
+            if (prevRow) {
+                prevRow.classList.remove('highlighted-row');
+            }
+        }
+
+        /** Aggiorna la UI per una riga di scommessa specifica */
+        function updateBettingTableUI(step) {
+            const bet = sessionData.betHistory[step - 1];
+            const row = document.getElementById(`stepRow-${step}`);
+            
+            // Aggiorna Netto Evento
+            const nettoCell = row.querySelector('td[data-col="nettoEvento"]');
+            nettoCell.textContent = formatCurrency(bet.nettoEvento);
+            nettoCell.style.color = bet.nettoEvento >= 0 ? 'var(--green-dark)' : 'var(--red)';
+            
+            // La riga corrente giocata non è più highlighted, la prossima lo sarà
+            row.classList.remove('highlighted-row');
+        }
+
+        /** Aggiorna l'interfaccia per il Saldo Real Time */
+        function updateSaldoRealTimeUI() {
+            const saldo = sessionData.saldoRealTime;
+            saldoRealTimeValue.textContent = formatCurrency(saldo);
+            saldoRealTimeValue.style.color = saldo >= 0 ? 'var(--green-dark)' : 'var(--red)';
         }
         
-        function tracciaNumeroPreGame(numero, analyzeOnly = false) {
-             let winTriggered = false;
+        /** Mostra un pop-up di vittoria */
+        function showWinPopup(amount) {
+            alert(`🎉 HAI VINTO ${formatCurrency(amount)}!! La sessione è conclusa con profitto. Archivia per salvare i dati.`);
+        }
 
-            TABELLA_DATI.forEach((rigaDati, rigaIndex) => {
-                if (winTriggered) return; 
-
-                rigaDati.forEach((valore, colonnaIndex) => {
-                    if (valore === numero) {
-                        const rigaElemento = righeTabella[rigaIndex];
-                        const cella = rigaElemento.cells[colonnaIndex];
-                        
-                        let nuovaEvidenziazione = false;
-                        if (!righeBruciate[rigaIndex]) {
-                            if (!cella.classList.contains('evidenziato')) {
-                                cella.classList.add('evidenziato'); 
-                                nuovaEvidenziazione = true;
-                            }
-                        }
-                        
-                        if (!righeBruciate[rigaIndex] && nuovaEvidenziazione) {
-                            const evidenziateNellaRiga = rigaElemento.querySelectorAll('.evidenziato').length;
-
-                            if (evidenziateNellaRiga === 4) { 
-                                if (!analyzeOnly) { 
-                                    triggerBettingPhase(rigaIndex, rigaDati);
-                                }
-                                winTriggered = true;
-                                return; 
-                            }
-                        }
-                        
-                        if (!righeBruciate[rigaIndex]) {
-                            checkIfRowBruciata(rigaIndex, numero);
-                        }
+        // === GESTIONE ARCHIVIO (JSONBIN.IO) ===
+        
+        /** Carica i dati dell'archivio da jsonbin.io */
+        async function loadArchive() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: {
+                        'X-ACCESS-KEY': API_KEY
                     }
                 });
-            });
-        }
-        
-        function resetProgressionState() {
-            isBettingPhase = false;
-            suggestedNumbers = null;
-            currentStep = 0;
-            winStepForArchive = null; 
-            
-            highlightStep(0); 
-            updateProgressionHeader(['?', '?', '?', '?', '?', '?', '?']); 
-            updateSuggestedNumbers(null); 
-        }
 
-        function resetAllMainData() {
-            numeriEstratti = [];
-            currentSaldo = 0; 
-            saldoRealTime.textContent = formatCurrency(currentSaldo);
-            
-            if (!valoreUnitarioInput.value || getUnitValue() <= 0) {
-                 valoreUnitarioInput.value = '0,10'; 
-            }
-            
-            resetProgressionState(); 
-            righeBruciate = new Array(12).fill(false);
-            mediUscitiPerRiga = new Array(12).fill(0).map(() => new Set());
-            
-            righeTabella.forEach(riga => {
-                riga.classList.remove('riga-bruciata');
-            });
-            tabellaDatiElemento.querySelectorAll('.evidenziato').forEach(cell => {
-                cell.classList.remove('evidenziato');
-            });
-            
-            updateEstrattiList();
-            initializeProgressionTable(); 
-            inputEstratto.focus();
-            inputEstratto.disabled = false; 
-            
-            checkRichiamaUltimiButtonState();
-        }
-
-        function analyzeExtractedNumbers(numbers) {
-            righeBruciate = new Array(12).fill(false);
-            mediUscitiPerRiga = new Array(12).fill(0).map(() => new Set()); 
-            tabellaDatiElemento.querySelectorAll('.evidenziato, .riga-bruciata').forEach(el => {
-                el.classList.remove('evidenziato', 'riga-bruciata');
-            });
-            
-            // Analizza i numeri dal più vecchio al più recente (invertendo la lista)
-            numbers.slice().reverse().forEach(numero => {
-                tracciaNumeroPreGame(numero, true); 
-            });
-            
-            updateEstrattiList(); 
-            checkRichiamaUltimiButtonState();
-        }
-        
-        function checkRichiamaUltimiButtonState() {
-            const lastNumbers = loadLastExtractedNumbers();
-            // Disabilitato se: siamo in fase di scommessa, ci sono numeri in lista, o non ci sono numeri salvati
-            const shouldBeDisabled = isBettingPhase || numeriEstratti.length > 0 || lastNumbers.length === 0 || winStepForArchive !== null;
-            btnRichiamaUltimi.disabled = shouldBeDisabled;
-        }
-
-        // ===============================================
-        // INIZIALIZZAZIONE & LISTENER
-        // ===============================================
-
-        async function init() {
-            valoreUnitarioInput.value = '0,10'; 
-            initializeProgressionTable(); 
-            // Carica l'archivio remoto all'avvio per popolare sessionArchives
-            sessionArchives = await fetchArchivesFromRemote(); 
-            saldoRealTime.textContent = formatCurrency(currentSaldo);
-            checkRichiamaUltimiButtonState(); 
-            inputEstratto.focus();
-        }
-
-        // Listener Principale (Input Numero Estratto)
-        inputEstratto.addEventListener('change', (event) => {
-            const valoreInput = event.target.value;
-            if (valoreInput === '') return; 
-            const numero = parseInt(valoreInput);
-            
-            if (numero >= 0 && numero <= 36) {
-                numeriEstratti.unshift(numero); 
-                updateEstrattiList();
-                
-                if (isBettingPhase) {
-                    processBettingPhase(numero);
-                } else {
-                    tracciaNumeroPreGame(numero, false); 
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status} - ${await response.text()}`);
                 }
 
-                event.target.value = '';
-                event.target.focus();
+                const data = await response.json();
+                const archiveData = Array.isArray(data.record) ? data.record : [];
                 
-                checkRichiamaUltimiButtonState();
+                renderArchiveTable(archiveData);
+                calculateCassaStorica(archiveData);
+
+            } catch (error) {
+                console.error("Errore nel caricamento dell'archivio. Controlla la console:", error);
+                renderArchiveTable([]);
+                calculateCassaStorica([]);
+            }
+        }
+
+        /** Salva i dati dell'archivio su jsonbin.io (sovrascrive tutto) */
+        async function saveArchive() {
+            if (sessionData.currentStep === 0) {
+                alert("Non c'è una sessione attiva da archiviare.");
+                return;
+            }
+            
+            // Ottiene data e ora corrente formattate
+            const now = new Date();
+            const datePart = now.toLocaleDateString('it-IT'); // Es: 13/12/2025
+            const timePart = now.toLocaleTimeString('it-IT'); // Es: 09:16:26
+            const dateTimeString = `${datePart} ${timePart}`; // Es: 13/12/2025 09:16:26
+
+            const newEntry = {
+                dataOra: dateTimeString,
+                netto: parseFloat(sessionData.saldoRealTime.toFixed(2)),
+                investimentoIniziale: parseFloat(puntataInput.value),
+                stepChiusura: sessionData.currentStep
+            };
+
+            try {
+                // 1. Carica i dati attuali
+                const responseRead = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: { 'X-ACCESS-KEY': API_KEY }
+                });
+                if (!responseRead.ok) throw new Error(`HTTP GET error! status: ${responseRead.status}`);
+                const currentData = await responseRead.json();
+                let archiveList = Array.isArray(currentData.record) ? currentData.record : [];
+                
+                // 2. Aggiungi la nuova entry
+                archiveList.push(newEntry);
+                
+                // 3. Salva la lista aggiornata (sovrascrittura)
+                const responseWrite = await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-ACCESS-KEY': API_KEY
+                    },
+                    body: JSON.stringify(archiveList)
+                });
+                
+                if (!responseWrite.ok) {
+                    throw new Error(`HTTP PUT error! status: ${responseWrite.status} - ${await responseWrite.text()}`);
+                }
+
+                alert('Sessione archiviata con successo!');
+                resetSession(); // Resetta il gioco dopo l'archiviazione
+                await loadArchive(); // Ricarica l'archivio per aggiornare la cassa
+
+            } catch (error) {
+                console.error("Errore nell'archiviazione della sessione. Controlla la console:", error);
+                alert("Errore nell'archiviazione. Controlla la console per i dettagli. Sessione NON salvata.");
+            }
+        }
+
+        /** Resetta l'intero archivio online a un array vuoto */
+        async function resetOnlineArchive() {
+            if (!confirm("Sei sicuro di voler resettare TUTTO lo storico archiviato? Questa azione è irreversibile.")) return;
+
+            try {
+                const responseWrite = await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-ACCESS-KEY': API_KEY
+                    },
+                    body: JSON.stringify([{}]) // Invia un array con un oggetto vuoto per mantenere la struttura
+                });
+                
+                if (!responseWrite.ok) {
+                    throw new Error(`HTTP error! status: ${responseWrite.status} - ${await responseWrite.text()}`);
+                }
+
+                alert('Archivio storico resettato con successo!');
+                loadArchive(); // Ricarica per aggiornare l'interfaccia
+
+            } catch (error) {
+                console.error("Errore nel reset dell'archivio. Controlla la console:", error);
+                alert("ERRORE nel reset dell'archivio! Controlla la console per i dettagli.");
+            }
+        }
+
+        /** Renderizza la tabella dell'archivio */
+        function renderArchiveTable(data) {
+            archiveTableBody.innerHTML = '';
+            
+            // Ordinamento Cronologico (dal più recente al più vecchio)
+            data.sort((a, b) => {
+                const dateA = parseDateTime(a.dataOra);
+                const dateB = parseDateTime(b.dataOra);
+                return dateB.getTime() - dateA.getTime(); // Decrescente (più recente prima)
+            });
+
+            data.forEach(item => {
+                // Saltiamo righe non valide o vuote
+                if (!item.dataOra || item.netto === undefined) return; 
+
+                // Dividiamo Data e Ora per la visualizzazione
+                const [datePart, timePart] = item.dataOra.split(' ');
+                
+                const row = archiveTableBody.insertRow();
+                row.innerHTML = `
+                    <td>${datePart || '-'}</td>
+                    <td>${timePart || '-'}</td>
+                    <td style="color: ${item.netto >= 0 ? 'var(--green-dark)' : 'var(--red)'};">${formatCurrency(item.netto)}</td>
+                    <td>${formatCurrency(item.investimentoIniziale)}</td>
+                    <td>${item.stepChiusura}</td>
+                `;
+            });
+        }
+        
+        /** Calcola e aggiorna la Cassa Storica */
+        function calculateCassaStorica(data) {
+            // Filtra per assicurarsi che 'netto' sia un numero valido prima di sommare
+            const totalNet = data.reduce((sum, item) => sum + (parseFloat(item.netto) || 0), 0);
+            cassaStoricaValue.textContent = formatCurrency(totalNet);
+            cassaStoricaValue.style.backgroundColor = totalNet >= 0 ? 'var(--green-light)' : 'var(--red)';
+            cassaStoricaValue.style.color = totalNet >= 0 ? 'var(--black)' : 'var(--white)';
+        }
+
+        // === GESTIONE EVENTI ===
+
+        /** Funzione centrale per processare il numero estratto, richiamata da diversi eventi. */
+        function handleNewNumber() {
+            const num = parseInt(numeroEstrattoInput.value);
+            const puntata = parseFloat(puntataInput.value);
+
+            // Controllo validità dell'input
+            if (isNaN(num) || num < 0 || num > 36 || isNaN(puntata) || puntata <= 0) {
+                // Mostra l'errore solo se l'utente ha provato ad inserire un valore non vuoto
+                if (numeroEstrattoInput.value.trim() !== '') {
+                    alert('Inserisci un numero valido (0-36) e una puntata iniziale valida.');
+                }
+                return;
+            }
+            
+            // Logica di processamento
+            sessionData.extractedNumbers.push(num);
+            numeroEstrattoInput.value = ''; // Pulisce il campo
+
+            if (sessionData.extractedNumbers.length >= ANALYSIS_COUNT) {
+                updateDataAreaTable(); // Aggiorna i 9 numeri
+                
+                // Dopo il 9° numero (o se è la prima giocata dopo il 9°)
+                if (sessionData.currentStep === 0) {
+                    calculateBetFactors();
+                    setupNextStep(1, puntata); // Inizia il primo step con puntata iniziale
+                    notifyBetFactors(); // MOSTRA IL POP-UP
+                } else {
+                    // Dal 10° numero in poi (o step successivi)
+                    processExtraction(num);
+                    calculateBetFactors(); // Ricalcola i fattori per il prossimo giro
+                }
             } else {
-                alert('Inserisci un numero valido tra 0 e 36.');
-                event.target.value = '';
-                event.target.focus();
+                updateDataAreaTable();
+            }
+        }
+
+        // 1. Listener per tastiera desktop (tasto Invio)
+        numeroEstrattoInput.addEventListener('keydown', function(event) {
+            // Controlla per 'Enter' o keyCode 13 (per maggiore compatibilità)
+            if (event.key === 'Enter' || event.keyCode === 13) {
+                event.preventDefault(); // Impedisce l'invio del form
+                handleNewNumber();
             }
         });
-        
-        // Listener per l'aggiornamento della tabella di progressione quando cambia il Valore Unitario
-        valoreUnitarioInput.addEventListener('input', initializeProgressionTable);
-        
-        // Listener Reset Progressione (con archiviazione se in perdita)
-        btnResetProgressione.addEventListener('click', async () => {
-             // Archivia la perdita se il gioco era in corso e non c'è stata una vittoria
-             if (isBettingPhase && currentSaldo < 0 && winStepForArchive === null) {
-                const confirmReset = confirm("Sei sicuro di voler resettare la progressione? Questa sessione verrà archiviata come PERDITA.");
-                if (confirmReset) {
-                    await archiveCurrentSession(false); // Archivia come perdita e resetta
-                    alert('Progressione e sessione archiviata come perdita sono state resettate.');
-                }
-             } else {
-                 if(confirm("Sei sicuro di voler resettare la progressione di puntate (tornare allo stato pre-gioco)?")) {
-                    resetProgressionState();
-                    alert('Progressione resettata. In attesa di una nuova riga vincente.');
-                    checkRichiamaUltimiButtonState();
-                 }
+
+        // 2. Listener per tastiera mobile (evento 'blur' quando si preme 'Done' o si tocca fuori)
+        numeroEstrattoInput.addEventListener('blur', function() {
+            // Processa solo se c'è un valore valido nel campo
+            if (this.value.trim() !== '') {
+                handleNewNumber();
+            }
+        });
+
+        // Pulsanti di navigazione
+        document.getElementById('btnToArchive').addEventListener('click', () => {
+            gameView.style.display = 'none';
+            archiveView.style.display = 'block';
+            loadArchive(); // Carica l'archivio senza controllo API key
+        });
+
+        document.getElementById('btnToGameFromArchive').addEventListener('click', () => {
+            archiveView.style.display = 'none';
+            gameView.style.display = 'block';
+            numeroEstrattoInput.focus();
+        });
+
+        // Pulsanti azioni
+        document.getElementById('btnArchivia').addEventListener('click', saveArchive);
+        document.getElementById('btnResetSession').addEventListener('click', () => {
+             if (confirm("Sei sicuro di voler resettare la sessione attuale?")) {
+                 resetSession();
              }
         });
+        document.getElementById('btnResetArchive').addEventListener('click', resetOnlineArchive);
 
-        // Listener Reset Numeri (Completo)
-        btnResetNumeri.addEventListener('click', () => {
-            if(confirm("Sei sicuro di voler resettare tutti i dati (numeri estratti, bruciature, fase di gioco e saldo) della pagina principale?")) {
-                resetAllMainData();
-                alert('Tutti i dati della pagina principale sono stati resettati.');
-            }
-        });
-        
-        // Listener Archivia Saldo (solo dopo una vittoria)
-        btnArchiviaSaldo.addEventListener('click', async () => {
-            if (winStepForArchive !== null) {
-                // Archiviazione come vittoria e reset
-                await archiveCurrentSession(true, winStepForArchive); 
-            } else {
-                alert('Puoi archiviare solo dopo una VINCITA. Per archiviare una perdita e resettare, usa il pulsante "RESET PROGRESSIONE".');
-            }
-        });
 
-        // Listener Visualizza Archivio
-        btnVisualizzaArchivio.addEventListener('click', displayStatsPage); 
-        
-        // Listener Richiama Ultimi
-        btnRichiamaUltimi.addEventListener('click', () => {
-            const lastNumbers = loadLastExtractedNumbers();
-            if (lastNumbers.length > 0) {
-                if(confirm(`Sei sicuro di voler caricare gli ultimi ${lastNumbers.length} numeri salvati per l'analisi? Lo stato corrente (saldo, progressione) verrà resettato.`)) {
-                    resetAllMainData();
-                    // Carica i numeri salvati localmente
-                    numeriEstratti = lastNumbers;
-                    analyzeExtractedNumbers(numeriEstratti);
-                    alert(`Caricati ${lastNumbers.length} numeri dalla sessione precedente.`);
-                }
-            } else {
-                alert('Nessun numero precedente salvato da richiamare.');
-            }
-        });
-        
-        // Inizializzazione asincrona
-        init();
+        // Inizializzazione all'apertura della pagina
+        window.onload = () => {
+            resetSession();
+            gameView.style.display = 'block';
+        };
     </script>
-
 </body>
 </html>
