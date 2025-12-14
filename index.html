@@ -37,18 +37,6 @@
             color: var(--gold);
             margin-bottom: 5px;
         }
-        
-        /* NUOVO STILE PER L'IMMAGINE */
-        .header img {
-            max-width: 100%; /* Assicura che l'immagine sia responsiva */
-            height: auto;
-            display: block;
-            margin: 0 auto; /* Centra l'immagine */
-            padding-top: 10px;
-            padding-bottom: 10px;
-            box-sizing: border-box;
-        }
-        /* FINE NUOVO STILE */
 
         label {
             display: block;
@@ -138,9 +126,8 @@
             top: 0;
         }
         
-        /* Stile specifico per le celle data/ora nell'archivio */
-        #archiveTable th:nth-child(1), #archiveTable td:nth-child(1), 
-        #archiveTable th:nth-child(2), #archiveTable td:nth-child(2) { 
+        /* Aggiungo uno stile specifico per le celle data/ora nell'archivio */
+        #archiveTable td:nth-child(1), #archiveTable td:nth-child(2) { 
             font-size: 0.8em; 
             white-space: nowrap;
         }
@@ -265,7 +252,7 @@
 
     <div id="gameView" class="view container">
         <div class="header">
-            <img src="https://raw.githubusercontent.com/mauro8274/MANDRAKE/13cdc9b29c08d454e8ac3aee5a65679c15ad97d2/IMG_0648.png" alt="Logo Roulette Tracker">
+            <img src="https://raw.githubusercontent.com/mauro8274/MANDRAKE/13cdc9b29c08d454e8ac3aee5a65679c15ad97d2/IMG_0648.png" alt="Logo Roulette Tracker" style="max-width: 90%; height: auto; display: block; margin: 0 auto; padding-top: 10px; padding-bottom: 10px;">
         </div>
 
         <div class="info-box">
